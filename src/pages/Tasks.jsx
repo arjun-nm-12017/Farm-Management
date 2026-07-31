@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
-import { CheckSquare, Plus, Edit2, Trash2, CheckCircle2, Calendar, User } from 'lucide-react'
-import { format, startOfWeek, endOfWeek } from 'date-fns'
+import { CheckSquare, Plus, Edit2, Trash2, CheckCircle2, Calendar, User, AlertCircle } from 'lucide-react'
+import { startOfWeek, endOfWeek } from 'date-fns'
 import useFarmStore from '../store'
 import {
   Button, Card, CardHeader, Input, Textarea, Select, Badge,
@@ -13,10 +13,10 @@ import { TASK_PRIORITIES, TASK_STATUSES } from '../data/farmTypes'
 const TASK_CATEGORIES = ['Field Work', 'Animal Care', 'Maintenance', 'Administrative', 'Other']
 
 const KANBAN_COLUMNS = [
-  { id: 'To Do', label: 'To Do', bg: 'bg-slate-50', border: 'border-slate-200', header: 'bg-slate-100 text-slate-700' },
-  { id: 'In Progress', label: 'In Progress', bg: 'bg-blue-50', border: 'border-blue-200', header: 'bg-blue-100 text-blue-700' },
-  { id: 'Done', label: 'Done', bg: 'bg-emerald-50', border: 'border-emerald-200', header: 'bg-emerald-100 text-emerald-700' },
-  { id: 'Cancelled', label: 'Cancelled', bg: 'bg-slate-100', border: 'border-slate-200', header: 'bg-slate-200 text-slate-600' },
+  { id: 'To Do', label: 'To Do', accent: 'bg-slate-500', bg: 'bg-slate-50', border: 'border-slate-200', count: 'bg-slate-200 text-slate-700' },
+  { id: 'In Progress', label: 'In Progress', accent: 'bg-blue-500', bg: 'bg-blue-50/40', border: 'border-blue-200', count: 'bg-blue-100 text-blue-700' },
+  { id: 'Done', label: 'Done', accent: 'bg-emerald-500', bg: 'bg-emerald-50/40', border: 'border-emerald-200', count: 'bg-emerald-100 text-emerald-700' },
+  { id: 'Cancelled', label: 'Cancelled', accent: 'bg-slate-400', bg: 'bg-slate-100/60', border: 'border-slate-200', count: 'bg-slate-200 text-slate-600' },
 ]
 
 const EMPTY_FORM = {
@@ -173,7 +173,7 @@ export default function Tasks() {
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       {/* Header */}
       <PageHeader
         title="Tasks & Scheduling"
@@ -187,7 +187,7 @@ export default function Tasks() {
       />
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard
           label="To Do"
           value={stats.todo}
@@ -203,7 +203,7 @@ export default function Tasks() {
         <StatCard
           label="Overdue"
           value={stats.overdue}
-          icon={AlertIcon}
+          icon={AlertCircle}
           color="red"
         />
         <StatCard
@@ -215,9 +215,7 @@ export default function Tasks() {
       </div>
 
       {/* View Toggle */}
-      <div className="flex items-center gap-4">
-        <Tabs tabs={tabItems} active={view} onChange={setView} />
-      </div>
+      <Tabs tabs={tabItems} active={view} onChange={setView} className="mb-5" />
 
       {/* Views */}
       {view === 'kanban' ? (
@@ -351,36 +349,36 @@ export default function Tasks() {
   )
 }
 
-// Simple alert icon fallback for the overdue stat
-function AlertIcon({ size = 22 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <line x1="12" y1="8" x2="12" y2="12" />
-      <line x1="12" y1="16" x2="12.01" y2="16" />
-    </svg>
-  )
-}
-
 // ─── Kanban View ──────────────────────────────────────────────────────────────
 function KanbanView({ columns, kanbanTasks, onEdit, onDelete, onAddTask, getUserName }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
       {columns.map((col) => {
         const colTasks = kanbanTasks[col.id] || []
         return (
-          <div key={col.id} className={classNames('rounded-xl border flex flex-col min-h-[200px]', col.bg, col.border)}>
+          <div
+            key={col.id}
+            className={classNames(
+              'rounded-2xl border flex flex-col min-h-[200px]',
+              col.bg, col.border
+            )}
+          >
             {/* Column Header */}
-            <div className={classNames('flex items-center justify-between px-4 py-3 rounded-t-xl', col.header)}>
-              <span className="text-sm font-semibold">{col.label}</span>
-              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-white/60">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-inherit rounded-t-2xl">
+              <div className="flex items-center gap-2">
+                <span className={classNames('w-2 h-2 rounded-full', col.accent)} />
+                <span className="text-sm font-semibold text-slate-700">{col.label}</span>
+              </div>
+              <span className={classNames('text-xs font-semibold px-2 py-0.5 rounded-full', col.count)}>
                 {colTasks.length}
               </span>
             </div>
             {/* Cards */}
             <div className="flex-1 p-3 space-y-3">
               {colTasks.length === 0 ? (
-                <p className="text-xs text-center text-slate-400 py-6">No tasks</p>
+                <div className="flex flex-col items-center justify-center py-10 text-center">
+                  <p className="text-xs text-slate-400">No tasks</p>
+                </div>
               ) : (
                 colTasks.map((task) => (
                   <KanbanCard
@@ -406,21 +404,21 @@ function KanbanCard({ task, onEdit, onDelete, getUserName }) {
   const assigneeName = getUserName(task.assignedTo)
 
   return (
-    <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-3 space-y-2 hover:shadow-md transition-shadow">
+    <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-all space-y-2.5">
       {/* Title + Actions */}
       <div className="flex items-start justify-between gap-2">
         <p className="text-sm font-medium text-slate-900 leading-snug flex-1">{task.title}</p>
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-0.5 shrink-0">
           <button
             onClick={() => onEdit(task)}
-            className="text-slate-400 hover:text-emerald-600 transition-colors p-0.5 rounded"
+            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
             title="Edit task"
           >
             <Edit2 size={13} />
           </button>
           <button
             onClick={() => onDelete(task)}
-            className="text-slate-400 hover:text-red-600 transition-colors p-0.5 rounded"
+            className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
             title="Delete task"
           >
             <Trash2 size={13} />
@@ -430,7 +428,7 @@ function KanbanCard({ task, onEdit, onDelete, getUserName }) {
 
       {/* Category */}
       {task.category && (
-        <span className="inline-block text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full">
+        <span className="inline-block text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full font-medium">
           {task.category}
         </span>
       )}
@@ -442,17 +440,19 @@ function KanbanCard({ task, onEdit, onDelete, getUserName }) {
 
       {/* Due Date */}
       {task.dueDate && (
-        <div className={classNames('flex items-center gap-1 text-xs', overdue ? 'text-red-600 font-medium' : 'text-slate-500')}>
+        <div className={classNames('flex items-center gap-1 text-xs', overdue ? 'text-red-600 font-semibold' : 'text-slate-500')}>
           <Calendar size={11} />
-          {overdue && <span>Overdue · </span>}
+          {overdue && <span>Overdue ·</span>}
           <span>{formatDate(task.dueDate)}</span>
         </div>
       )}
 
       {/* Assignee */}
       {assigneeName && (
-        <div className="flex items-center gap-1 text-xs text-slate-500">
-          <User size={11} />
+        <div className="flex items-center gap-1.5 text-xs text-slate-500">
+          <div className="w-4 h-4 rounded-full bg-slate-200 flex items-center justify-center">
+            <User size={9} className="text-slate-500" />
+          </div>
           <span>{assigneeName}</span>
         </div>
       )}
@@ -485,7 +485,7 @@ function ListView({
       key: 'category',
       label: 'Category',
       render: (row) => (
-        <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full">
+        <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full font-medium">
           {row.category || '—'}
         </span>
       ),
@@ -496,8 +496,18 @@ function ListView({
       render: (row) => {
         const name = getUserName(row.assignedTo)
         return (
-          <div className="flex items-center gap-1 text-sm text-slate-700">
-            {name ? <><User size={13} className="text-slate-400" />{name}</> : <span className="text-slate-400">—</span>}
+          <div className="flex items-center gap-1.5 text-sm text-slate-700">
+            {name
+              ? (
+                <>
+                  <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                    <User size={11} className="text-slate-400" />
+                  </div>
+                  <span>{name}</span>
+                </>
+              )
+              : <span className="text-slate-400">—</span>
+            }
           </div>
         )
       },
@@ -508,7 +518,7 @@ function ListView({
       render: (row) => {
         const overdue = row.dueDate && row.status !== 'Done' && row.status !== 'Cancelled' && isOverdue(row.dueDate)
         return (
-          <span className={classNames('text-sm flex items-center gap-1', overdue ? 'text-red-600 font-medium' : 'text-slate-600')}>
+          <span className={classNames('text-sm flex items-center gap-1', overdue ? 'text-red-600 font-semibold' : 'text-slate-600')}>
             <Calendar size={13} />
             {row.dueDate ? formatDate(row.dueDate) : '—'}
           </span>
@@ -530,11 +540,11 @@ function ListView({
       label: 'Actions',
       className: 'text-right',
       render: (row) => (
-        <div className="flex items-center justify-end gap-1">
+        <div className="flex items-center justify-end gap-0.5">
           {row.status !== 'Done' && row.status !== 'Cancelled' && (
             <button
               onClick={(e) => { e.stopPropagation(); onMarkComplete(row) }}
-              className="text-slate-400 hover:text-emerald-600 transition-colors p-1.5 rounded-lg hover:bg-emerald-50"
+              className="p-1.5 rounded-lg hover:bg-emerald-50 text-slate-400 hover:text-emerald-600 transition-colors"
               title="Mark complete"
             >
               <CheckCircle2 size={15} />
@@ -542,14 +552,14 @@ function ListView({
           )}
           <button
             onClick={(e) => { e.stopPropagation(); onEdit(row) }}
-            className="text-slate-400 hover:text-blue-600 transition-colors p-1.5 rounded-lg hover:bg-blue-50"
+            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
             title="Edit"
           >
             <Edit2 size={15} />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onDelete(row) }}
-            className="text-slate-400 hover:text-red-600 transition-colors p-1.5 rounded-lg hover:bg-red-50"
+            className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
             title="Delete"
           >
             <Trash2 size={15} />
@@ -560,9 +570,9 @@ function ListView({
   ]
 
   return (
-    <Card padding={false}>
+    <Card padding={false} className="overflow-hidden rounded-2xl">
       {/* Filters */}
-      <div className="p-4 border-b border-slate-100 flex flex-wrap gap-3 items-end">
+      <div className="px-5 py-4 border-b border-slate-100 flex flex-wrap gap-3 items-center">
         <SearchBar
           value={search}
           onChange={setSearch}
@@ -603,11 +613,15 @@ function ListView({
 
       {/* Table */}
       {tasks.length === 0 ? (
-        <EmptyState
-          icon={CheckSquare}
-          title="No tasks found"
-          description="No tasks match your current filters. Try adjusting your search or add a new task."
-        />
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="bg-gradient-to-br from-slate-100 to-slate-50 rounded-3xl p-6 mb-4">
+            <CheckSquare size={32} className="text-slate-400" />
+          </div>
+          <p className="text-sm font-semibold text-slate-700 mb-1">No tasks found</p>
+          <p className="text-xs text-slate-500 max-w-xs">
+            No tasks match your current filters. Try adjusting your search or add a new task.
+          </p>
+        </div>
       ) : (
         <Table columns={columns} data={tasks} emptyText="No tasks found" />
       )}

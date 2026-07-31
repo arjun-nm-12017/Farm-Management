@@ -233,21 +233,21 @@ export default function Livestock() {
           <button
             title="Add Health Record"
             onClick={(e) => { e.stopPropagation(); openHealthModal(row.id) }}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-emerald-50 text-slate-400 hover:text-emerald-600 transition-colors"
           >
             <Syringe size={15} />
           </button>
           <button
             title="Edit"
             onClick={(e) => { e.stopPropagation(); openEditAnimal(row) }}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-blue-50 text-slate-400 hover:text-blue-600 transition-colors"
           >
             <Edit2 size={15} />
           </button>
           <button
             title="Delete"
             onClick={(e) => { e.stopPropagation(); setDeleteAnimal(row) }}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-600 transition-colors"
           >
             <Trash2 size={15} />
           </button>
@@ -294,7 +294,9 @@ export default function Livestock() {
     {
       key: 'cost',
       label: 'Cost',
-      render: (row) => row.cost != null ? formatCurrency(row.cost) : <span className="text-slate-400">—</span>,
+      render: (row) => row.cost != null
+        ? <span className="text-red-500">{formatCurrency(row.cost)}</span>
+        : <span className="text-slate-400">—</span>,
     },
     {
       key: 'nextDue',
@@ -355,7 +357,7 @@ export default function Livestock() {
 
   // ─── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <div className="space-y-7">
       {/* Page Header */}
       <PageHeader
         title="Livestock Management"
@@ -378,13 +380,15 @@ export default function Livestock() {
       />
 
       {/* Tabs */}
-      <Tabs tabs={TABS} active={activeTab} onChange={setActiveTab} />
+      <div className="mb-5">
+        <Tabs tabs={TABS} active={activeTab} onChange={setActiveTab} />
+      </div>
 
       {/* ── ANIMALS TAB ── */}
       {activeTab === 'animals' && (
         <div className="space-y-5">
           {/* Stats row */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
             <StatCard
               label="Total Animals"
               value={animals.length}
@@ -405,8 +409,8 @@ export default function Livestock() {
           </div>
 
           {/* Search + Table */}
-          <Card padding={false}>
-            <div className="p-4 border-b border-slate-100">
+          <Card padding={false} className="overflow-hidden rounded-2xl border border-slate-200/80 shadow-sm">
+            <div className="flex flex-wrap gap-3 items-center px-5 py-4 border-b border-slate-100">
               <SearchBar
                 value={animalSearch}
                 onChange={setAnimalSearch}
@@ -438,7 +442,7 @@ export default function Livestock() {
 
       {/* ── HEALTH RECORDS TAB ── */}
       {activeTab === 'health' && (
-        <Card padding={false}>
+        <Card padding={false} className="overflow-hidden rounded-2xl border border-slate-200/80 shadow-sm">
           {healthRecords.length === 0 ? (
             <EmptyState
               icon={Syringe}
@@ -454,9 +458,12 @@ export default function Livestock() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-slate-200">
+                  <tr className="border-b border-slate-200 bg-slate-50/60">
                     {healthColumns.map((col) => (
-                      <th key={col.key} className="px-4 py-3 text-left font-medium text-slate-500 whitespace-nowrap">
+                      <th
+                        key={col.key}
+                        className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap"
+                      >
                         {col.label}
                       </th>
                     ))}
@@ -490,7 +497,7 @@ export default function Livestock() {
         <div className="space-y-5">
           {/* Monthly totals */}
           {monthlyProductionTotals.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
               {monthlyProductionTotals.map(({ type, total, unit }) => (
                 <StatCard
                   key={type}
@@ -503,7 +510,7 @@ export default function Livestock() {
             </div>
           )}
 
-          <Card padding={false}>
+          <Card padding={false} className="overflow-hidden rounded-2xl border border-slate-200/80 shadow-sm">
             {productionLogs.length === 0 ? (
               <EmptyState
                 icon={Activity}

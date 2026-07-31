@@ -147,9 +147,11 @@ function TransactionModal({ open, onClose, editItem, incomeCategories, expenseCa
       }
     >
       <div className="space-y-4">
-        {/* Type radio */}
+        {/* Type toggle */}
         <div>
-          <label className="text-sm font-medium text-slate-700 block mb-2">Transaction Type</label>
+          <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide block mb-2">
+            Transaction Type
+          </label>
           <div className="flex gap-3">
             {['income', 'expense'].map((t) => (
               <button
@@ -237,7 +239,7 @@ function TransactionModal({ open, onClose, editItem, incomeCategories, expenseCa
 
 // ─── Transactions Tab ─────────────────────────────────────────────────────────
 
-function TransactionsTab({ transactions, incomeCategories, expenseCategories, currency }) {
+function TransactionsTab({ transactions, incomeCategories, expenseCategories, currency, onAddTransaction }) {
   const removeTransaction = useFarmStore((s) => s.removeTransaction)
 
   const [dateRange, setDateRange] = useState('this_month')
@@ -268,7 +270,6 @@ function TransactionsTab({ transactions, incomeCategories, expenseCategories, cu
 
   const net = totalIncome - totalExpense
 
-  // All unique categories in range
   const allCategoriesInRange = useMemo(() => {
     const set = new Set(transactions
       .filter((t) => isInRange(t.date, from, to))
@@ -324,7 +325,7 @@ function TransactionsTab({ transactions, incomeCategories, expenseCategories, cu
       render: (row) => (
         <span className={classNames(
           'font-semibold whitespace-nowrap',
-          row.type === 'income' ? 'text-emerald-700' : 'text-red-600'
+          row.type === 'income' ? 'text-emerald-600' : 'text-red-500'
         )}>
           {row.type === 'income' ? '+' : '-'}{formatCurrency(row.amount, currency)}
         </span>
@@ -338,14 +339,14 @@ function TransactionsTab({ transactions, incomeCategories, expenseCategories, cu
         <div className="flex items-center justify-end gap-1">
           <button
             onClick={(e) => { e.stopPropagation(); handleEdit(row) }}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
             title="Edit"
           >
             <Edit2 size={14} />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); setDeleteTarget(row) }}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
             title="Delete"
           >
             <Trash2 size={14} />
@@ -357,20 +358,8 @@ function TransactionsTab({ transactions, incomeCategories, expenseCategories, cu
 
   return (
     <div className="space-y-5">
-      {/* Page header */}
-      <PageHeader
-        title="Finance"
-        subtitle="Track income, expenses, and profitability"
-        action={
-          <Button onClick={() => { setEditItem(null); setShowModal(true) }}>
-            <Plus size={16} />
-            Add Transaction
-          </Button>
-        }
-      />
-
       {/* Stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard
           label="Total Income"
           value={formatCurrency(totalIncome, currency)}
@@ -391,71 +380,69 @@ function TransactionsTab({ transactions, incomeCategories, expenseCategories, cu
           icon={DollarSign}
           color={net >= 0 ? 'emerald' : 'red'}
           subtext={
-            <span className={net >= 0 ? 'text-emerald-600' : 'text-red-600'}>
+            <span className={net >= 0 ? 'text-emerald-600' : 'text-red-500'}>
               {net >= 0 ? 'Profit' : 'Loss'} — {DATE_RANGE_OPTIONS.find((o) => o.value === dateRange)?.label}
             </span>
           }
         />
       </div>
 
-      {/* Filters */}
-      <Card>
-        <div className="flex flex-wrap gap-3 items-center">
-          {/* Date range */}
-          <div className="w-44">
-            <Select
-              value={dateRange}
-              onChange={(e) => setDateRange(e.target.value)}
-            >
-              {DATE_RANGE_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </Select>
-          </div>
-
-          {/* Search */}
-          <SearchBar
-            value={search}
-            onChange={setSearch}
-            placeholder="Search transactions..."
-            className="flex-1 min-w-48"
-          />
-
-          {/* Type filter */}
-          <div className="flex gap-1 bg-slate-100 p-1 rounded-lg">
-            {['all', 'income', 'expense'].map((t) => (
-              <button
-                key={t}
-                onClick={() => setTypeFilter(t)}
-                className={classNames(
-                  'px-3 py-1 text-xs font-medium rounded-md capitalize transition-colors',
-                  typeFilter === t
-                    ? 'bg-white text-slate-900 shadow-sm'
-                    : 'text-slate-500 hover:text-slate-700'
-                )}
-              >
-                {t === 'all' ? 'All' : t === 'income' ? 'Income' : 'Expense'}
-              </button>
+      {/* Filter bar */}
+      <div className="flex flex-wrap gap-3 items-center mb-5">
+        {/* Date range */}
+        <div className="w-44">
+          <Select
+            value={dateRange}
+            onChange={(e) => setDateRange(e.target.value)}
+          >
+            {DATE_RANGE_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
             ))}
-          </div>
-
-          {/* Category filter */}
-          <div className="w-44">
-            <Select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-            >
-              <option value="all">All Categories</option>
-              {allCategoriesInRange.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </Select>
-          </div>
+          </Select>
         </div>
-      </Card>
+
+        {/* Search */}
+        <SearchBar
+          value={search}
+          onChange={setSearch}
+          placeholder="Search transactions..."
+          className="flex-1 min-w-48"
+        />
+
+        {/* Type filter */}
+        <div className="flex gap-1 bg-slate-100 p-1 rounded-lg">
+          {['all', 'income', 'expense'].map((t) => (
+            <button
+              key={t}
+              onClick={() => setTypeFilter(t)}
+              className={classNames(
+                'px-3 py-1 text-xs font-medium rounded-md capitalize transition-colors',
+                typeFilter === t
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700'
+              )}
+            >
+              {t === 'all' ? 'All' : t === 'income' ? 'Income' : 'Expense'}
+            </button>
+          ))}
+        </div>
+
+        {/* Category filter */}
+        <div className="w-44">
+          <Select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+          >
+            <option value="all">All Categories</option>
+            {allCategoriesInRange.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </Select>
+        </div>
+      </div>
 
       {/* Table */}
-      <Card padding={false}>
+      <Card padding={false} className="overflow-hidden rounded-2xl">
         {filtered.length === 0 ? (
           <EmptyState
             icon={DollarSign}
@@ -520,7 +507,6 @@ function ChartTooltip({ active, payload, label, currency }) {
 function SummaryTab({ transactions, currency }) {
   const monthlyData = useMemo(() => getLastSixMonthsData(transactions), [transactions])
 
-  // Top 5 expense categories (all-time or last 6 months)
   const { from: from6, to: to6 } = useMemo(() => getDateRange('last_6_months'), [])
 
   const expensesLast6 = useMemo(
@@ -538,7 +524,6 @@ function SummaryTab({ transactions, currency }) {
   const top5Expenses = expenseByCategory.slice(0, 5)
   const totalExpenses = sumBy(expensesLast6, 'amount')
 
-  // Income by category
   const incomeLast6 = useMemo(
     () => transactions.filter((t) => t.type === 'income' && isInRange(t.date, from6, to6)),
     [transactions, from6, to6]
@@ -554,11 +539,22 @@ function SummaryTab({ transactions, currency }) {
   const totalIncomeLast6 = sumBy(incomeLast6, 'amount')
 
   const categoryColumns = [
-    { key: 'category', label: 'Category', render: (row) => <span className="font-medium text-slate-800">{row.category || 'Uncategorized'}</span> },
+    {
+      key: 'category',
+      label: 'Category',
+      render: (row) => <span className="font-medium text-slate-800">{row.category || 'Uncategorized'}</span>,
+    },
     {
       key: 'total',
       label: 'Total Amount',
-      render: (row) => <span className="font-semibold text-slate-900">{formatCurrency(row.total, currency)}</span>,
+      render: (row) => (
+        <span className={classNames(
+          'font-semibold',
+          row._type === 'income' ? 'text-emerald-600' : 'text-red-500'
+        )}>
+          {formatCurrency(row.total, currency)}
+        </span>
+      ),
     },
     {
       key: 'pct',
@@ -587,7 +583,7 @@ function SummaryTab({ transactions, currency }) {
   const hasData = transactions.length > 0
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       {/* Income vs Expense Bar Chart */}
       <Card>
         <CardHeader title="Income vs Expenses" subtitle="Monthly comparison — last 6 months" />
@@ -600,7 +596,10 @@ function SummaryTab({ transactions, currency }) {
             <BarChart data={monthlyData} margin={{ top: 4, right: 16, left: 8, bottom: 4 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false}
+              <YAxis
+                tick={{ fontSize: 11, fill: '#64748b' }}
+                axisLine={false}
+                tickLine={false}
                 tickFormatter={(v) => `${currency === 'USD' ? '$' : ''}${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`}
               />
               <Tooltip content={<ChartTooltip currency={currency} />} />
@@ -624,7 +623,10 @@ function SummaryTab({ transactions, currency }) {
             <LineChart data={monthlyData} margin={{ top: 4, right: 16, left: 8, bottom: 4 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false}
+              <YAxis
+                tick={{ fontSize: 11, fill: '#64748b' }}
+                axisLine={false}
+                tickLine={false}
                 tickFormatter={(v) => `${v >= 0 ? '' : '-'}${currency === 'USD' ? '$' : ''}${Math.abs(v) >= 1000 ? `${(Math.abs(v) / 1000).toFixed(0)}k` : Math.abs(v)}`}
               />
               <Tooltip content={<ChartTooltip currency={currency} />} />
@@ -686,28 +688,32 @@ function SummaryTab({ transactions, currency }) {
           )}
         </Card>
 
-        {/* Category totals table */}
+        {/* Category totals */}
         <Card>
           <CardHeader title="Category Summary" subtitle="Income & expense breakdown" />
           <div className="space-y-5">
             {incomeCatData.length > 0 && (
               <div>
-                <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wide mb-2">Income</p>
-                <Table
-                  columns={categoryColumns}
-                  data={incomeCatData}
-                  emptyText="No income records"
-                />
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Income</p>
+                <Card padding={false} className="overflow-hidden rounded-2xl">
+                  <Table
+                    columns={categoryColumns}
+                    data={incomeCatData}
+                    emptyText="No income records"
+                  />
+                </Card>
               </div>
             )}
             {expenseCatData.length > 0 && (
               <div>
-                <p className="text-xs font-semibold text-rose-600 uppercase tracking-wide mb-2">Expenses</p>
-                <Table
-                  columns={categoryColumns}
-                  data={expenseCatData}
-                  emptyText="No expense records"
-                />
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Expenses</p>
+                <Card padding={false} className="overflow-hidden rounded-2xl">
+                  <Table
+                    columns={categoryColumns}
+                    data={expenseCatData}
+                    emptyText="No expense records"
+                  />
+                </Card>
               </div>
             )}
             {incomeCatData.length === 0 && expenseCatData.length === 0 && (
@@ -727,6 +733,7 @@ export default function Finance() {
   const farmProfile = useFarmStore((s) => s.farmProfile)
 
   const [activeTab, setActiveTab] = useState('transactions')
+  const [showAddModal, setShowAddModal] = useState(false)
 
   // Derive categories from farm type
   const { incomeCategories, expenseCategories } = useMemo(() => {
@@ -742,7 +749,6 @@ export default function Finance() {
       ft.defaultCategories?.income?.forEach((c) => incomeSet.add(c))
       ft.defaultCategories?.expense?.forEach((c) => expenseSet.add(c))
     })
-    // Fallbacks if sets empty
     if (!incomeSet.size) DEFAULT_INCOME_CATEGORIES.forEach((c) => incomeSet.add(c))
     if (!expenseSet.size) DEFAULT_EXPENSE_CATEGORIES.forEach((c) => expenseSet.add(c))
     return {
@@ -759,27 +765,51 @@ export default function Finance() {
   ]
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-5">
-        {/* Tabs */}
-        <Tabs tabs={tabs} active={activeTab} onChange={setActiveTab} />
+    <div className="space-y-7">
+      {/* Page header */}
+      <PageHeader
+        title="Finance"
+        subtitle="Track income, expenses, and profitability"
+        action={
+          activeTab === 'transactions' && (
+            <Button onClick={() => setShowAddModal(true)}>
+              <Plus size={16} />
+              Add Transaction
+            </Button>
+          )
+        }
+      />
 
-        {activeTab === 'transactions' && (
-          <TransactionsTab
-            transactions={transactions}
-            incomeCategories={incomeCategories}
-            expenseCategories={expenseCategories}
-            currency={currency}
-          />
-        )}
+      {/* Tabs */}
+      <Tabs tabs={tabs} active={activeTab} onChange={setActiveTab} className="mb-5" />
 
-        {activeTab === 'summary' && (
-          <SummaryTab
-            transactions={transactions}
-            currency={currency}
-          />
-        )}
-      </div>
+      {activeTab === 'transactions' && (
+        <TransactionsTab
+          transactions={transactions}
+          incomeCategories={incomeCategories}
+          expenseCategories={expenseCategories}
+          currency={currency}
+        />
+      )}
+
+      {activeTab === 'summary' && (
+        <SummaryTab
+          transactions={transactions}
+          currency={currency}
+        />
+      )}
+
+      {/* Add transaction modal triggered from header */}
+      {showAddModal && (
+        <TransactionModal
+          open={showAddModal}
+          onClose={() => setShowAddModal(false)}
+          editItem={null}
+          incomeCategories={incomeCategories}
+          expenseCategories={expenseCategories}
+          currency={currency}
+        />
+      )}
     </div>
   )
 }

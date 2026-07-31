@@ -33,12 +33,6 @@ function FieldModal({ open, onClose, onSave, initial }) {
   const [form, setForm] = useState(initial || BLANK_FIELD)
   const [errors, setErrors] = useState({})
 
-  // Reset form when modal opens with new initial value
-  const handleOpen = () => {
-    setForm(initial || BLANK_FIELD)
-    setErrors({})
-  }
-
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }))
 
   const validate = () => {
@@ -69,9 +63,7 @@ function FieldModal({ open, onClose, onSave, initial }) {
         </div>
       }
     >
-      {/* Re-initialise form whenever modal visibility changes */}
-      {open && (() => { /* side-effect trick — we use useEffect-less pattern via key */ })()}
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <Input
           label="Field Name"
           placeholder="e.g. North Paddock"
@@ -80,7 +72,7 @@ function FieldModal({ open, onClose, onSave, initial }) {
           error={errors.name}
           required
         />
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-4">
           <Input
             label="Area"
             type="number"
@@ -159,7 +151,7 @@ function CropModal({ open, onClose, onSave, initial, fields }) {
         </div>
       }
     >
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <Input
           label="Crop Name"
           placeholder="e.g. Wheat, Maize, Tomato"
@@ -184,7 +176,7 @@ function CropModal({ open, onClose, onSave, initial, fields }) {
             <option key={f.id} value={f.id}>{f.name}</option>
           ))}
         </Select>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-4">
           <Input
             label="Planting Date"
             type="date"
@@ -247,7 +239,7 @@ function ActivityModal({ open, onClose, onSave, crop }) {
         </div>
       }
     >
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <Select
           label="Activity Type"
           value={form.type}
@@ -262,7 +254,7 @@ function ActivityModal({ open, onClose, onSave, crop }) {
           onChange={(e) => set('date', e.target.value)}
           required
         />
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-4">
           <Input
             label="Amount"
             type="number"
@@ -350,14 +342,14 @@ function FieldsTab({ fields, crops, onAdd, onEdit, onDelete }) {
         <div className="flex items-center justify-end gap-1">
           <button
             onClick={(e) => { e.stopPropagation(); onEdit(row) }}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
             title="Edit field"
           >
             <Edit2 size={15} />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onDelete(row) }}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
             title="Delete field"
           >
             <Trash2 size={15} />
@@ -368,13 +360,15 @@ function FieldsTab({ fields, crops, onAdd, onEdit, onDelete }) {
   ]
 
   return (
-    <div className="flex flex-col gap-4">
-      <SearchBar
-        value={search}
-        onChange={setSearch}
-        placeholder="Search fields by name, location, or soil type…"
-        className="max-w-sm"
-      />
+    <div className="space-y-5">
+      <div className="flex flex-wrap gap-3 items-center mb-5">
+        <SearchBar
+          value={search}
+          onChange={setSearch}
+          placeholder="Search fields by name, location, or soil type…"
+          className="max-w-sm"
+        />
+      </div>
       {filtered.length === 0 && fields.length === 0 ? (
         <EmptyState
           icon={Wheat}
@@ -387,7 +381,7 @@ function FieldsTab({ fields, crops, onAdd, onEdit, onDelete }) {
           }
         />
       ) : (
-        <Card padding={false}>
+        <Card padding={false} className="overflow-hidden rounded-2xl">
           {filtered.length === 0 ? (
             <div className="px-4 py-10 text-center text-slate-400 text-sm">
               No fields match your search.
@@ -465,21 +459,21 @@ function CropsTab({ crops, fields, onAdd, onEdit, onDelete, onLogActivity }) {
         <div className="flex items-center justify-end gap-1">
           <button
             onClick={(e) => { e.stopPropagation(); onLogActivity(row) }}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
             title="Log activity"
           >
             <Activity size={15} />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onEdit(row) }}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
             title="Edit crop"
           >
             <Edit2 size={15} />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onDelete(row) }}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
             title="Delete crop"
           >
             <Trash2 size={15} />
@@ -505,7 +499,7 @@ function CropsTab({ crops, fields, onAdd, onEdit, onDelete, onLogActivity }) {
   }
 
   return (
-    <Card padding={false}>
+    <Card padding={false} className="overflow-hidden rounded-2xl">
       <Table columns={columns} data={crops} />
     </Card>
   )
@@ -623,25 +617,25 @@ export default function Fields() {
     )
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="space-y-7">
       {/* Page Header */}
       <PageHeader
         title="Fields & Crops"
         subtitle={`${fields.length} field${fields.length !== 1 ? 's' : ''} · ${crops.length} crop${crops.length !== 1 ? 's' : ''}`}
         action={tabAction}
+        className="mb-7"
       />
 
       {/* Tabs */}
-      <div className="mb-6">
-        <Tabs
-          tabs={[
-            { id: 'fields', label: `Fields (${fields.length})` },
-            { id: 'crops', label: `Crops (${crops.length})` },
-          ]}
-          active={activeTab}
-          onChange={setActiveTab}
-        />
-      </div>
+      <Tabs
+        tabs={[
+          { id: 'fields', label: `Fields (${fields.length})` },
+          { id: 'crops', label: `Crops (${crops.length})` },
+        ]}
+        active={activeTab}
+        onChange={setActiveTab}
+        className="mb-5"
+      />
 
       {/* Tab Content */}
       {activeTab === 'fields' ? (

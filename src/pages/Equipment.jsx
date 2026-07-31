@@ -80,7 +80,7 @@ function EquipmentModal({ open, onClose, initial, onSave, title }) {
         </div>
       }
     >
-      <div className="grid grid-cols-1 gap-4">
+      <div className="space-y-4">
         <Input
           label="Equipment Name *"
           placeholder="e.g. John Deere 5055E"
@@ -88,7 +88,7 @@ function EquipmentModal({ open, onClose, initial, onSave, title }) {
           onChange={(e) => set('name', e.target.value)}
           error={errors.name}
         />
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-4">
           <Select label="Type" value={form.type} onChange={(e) => set('type', e.target.value)}>
             {EQUIPMENT_TYPES.map((t) => <option key={t}>{t}</option>)}
           </Select>
@@ -96,7 +96,7 @@ function EquipmentModal({ open, onClose, initial, onSave, title }) {
             {CONDITIONS.map((c) => <option key={c}>{c}</option>)}
           </Select>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-4">
           <Input
             label="Brand"
             placeholder="e.g. John Deere"
@@ -173,7 +173,7 @@ function MaintenanceModal({ open, onClose, onSave, equipment, preselectedEquipme
         </div>
       }
     >
-      <div className="grid grid-cols-1 gap-4">
+      <div className="space-y-4">
         <Select
           label="Equipment *"
           value={form.equipmentId}
@@ -185,7 +185,7 @@ function MaintenanceModal({ open, onClose, onSave, equipment, preselectedEquipme
             <option key={eq.id} value={eq.id}>{eq.name}</option>
           ))}
         </Select>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-4">
           <Select label="Type" value={form.type} onChange={(e) => set('type', e.target.value)}>
             {MAINTENANCE_TYPES.map((t) => <option key={t}>{t}</option>)}
           </Select>
@@ -204,7 +204,7 @@ function MaintenanceModal({ open, onClose, onSave, equipment, preselectedEquipme
           onChange={(e) => set('description', e.target.value)}
           rows={3}
         />
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-4">
           <Input
             label="Cost"
             type="number"
@@ -251,7 +251,7 @@ function EquipmentCard({ item, maintenanceLogs, onEdit, onDelete, onLogMaintenan
   const upcoming = !overdue && isUpcoming(latestNextDue, SERVICE_WINDOW_DAYS)
 
   return (
-    <Card className="flex flex-col gap-3 hover:shadow-md transition-shadow">
+    <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-all flex flex-col gap-3">
       {/* Header row */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
@@ -315,15 +315,22 @@ function EquipmentCard({ item, maintenanceLogs, onEdit, onDelete, onLogMaintenan
         >
           <Wrench size={13} /> Log Maintenance
         </Button>
-        <Button size="sm" variant="ghost" onClick={() => onEdit(item)} title="Edit">
+        <button
+          onClick={() => onEdit(item)}
+          title="Edit"
+          className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
+        >
           <Edit2 size={14} />
-        </Button>
-        <Button size="sm" variant="ghost" onClick={() => onDelete(item)} title="Delete"
-          className="text-red-500 hover:bg-red-50">
+        </button>
+        <button
+          onClick={() => onDelete(item)}
+          title="Delete"
+          className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
+        >
           <Trash2 size={14} />
-        </Button>
+        </button>
       </div>
-    </Card>
+    </div>
   )
 }
 
@@ -460,7 +467,9 @@ export default function Equipment() {
     {
       key: 'cost',
       label: 'Cost',
-      render: (row) => row.cost != null ? formatCurrency(row.cost, currency) : '—',
+      render: (row) => row.cost != null
+        ? <span className="text-red-500 font-medium">{formatCurrency(row.cost, currency)}</span>
+        : '—',
     },
     {
       key: 'technician',
@@ -490,60 +499,68 @@ export default function Equipment() {
   // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 sm:p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="space-y-7">
 
-        {/* Page Header */}
-        <PageHeader
-          title="Equipment & Maintenance"
-          subtitle="Track your farm equipment and maintenance schedules"
-          action={
-            <Button onClick={() => setShowAddModal(true)}>
-              <Plus size={16} /> Add Equipment
-            </Button>
+      {/* Page Header */}
+      <PageHeader
+        title="Equipment & Maintenance"
+        subtitle="Track your farm equipment and maintenance schedules"
+        className="mb-7"
+        action={
+          <Button onClick={() => setShowAddModal(true)}>
+            <Plus size={16} /> Add Equipment
+          </Button>
+        }
+      />
+
+      {/* Service Due Alert */}
+      {!alertDismissed && dueForService.length > 0 && (
+        <Alert variant="warning" onClose={() => setAlertDismissed(true)}>
+          <span className="font-semibold">
+            {dueForService.length} piece{dueForService.length > 1 ? 's' : ''} of equipment
+            {dueForService.length > 1 ? ' are' : ' is'} due for service:
+          </span>{' '}
+          {dueForService.map((eq) => eq.name).join(', ')}
+        </Alert>
+      )}
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+        <StatCard
+          label="Total Equipment"
+          value={equipment.length}
+          icon={Settings}
+          color="emerald"
+        />
+        <StatCard
+          label="Due for Service"
+          value={dueForService.length}
+          icon={AlertTriangle}
+          color={dueForService.length > 0 ? 'amber' : 'emerald'}
+          subtext={`Within ${SERVICE_WINDOW_DAYS} days or overdue`}
+        />
+        <StatCard
+          label="Average Condition"
+          value={avgCondition}
+          icon={Wrench}
+          color={
+            avgCondition === 'Excellent' || avgCondition === 'Good' ? 'emerald'
+              : avgCondition === 'Fair' ? 'amber'
+                : avgCondition === '—' ? 'slate'
+                  : 'red'
           }
         />
+        <StatCard
+          label="Maintenance Logs"
+          value={maintenanceLogs.length}
+          icon={Calendar}
+          color="blue"
+          subtext="Total service records"
+        />
+      </div>
 
-        {/* Service Due Alert */}
-        {!alertDismissed && dueForService.length > 0 && (
-          <Alert variant="warning" onClose={() => setAlertDismissed(true)}>
-            <span className="font-semibold">
-              {dueForService.length} piece{dueForService.length > 1 ? 's' : ''} of equipment
-              {dueForService.length > 1 ? ' are' : ' is'} due for service:
-            </span>{' '}
-            {dueForService.map((eq) => eq.name).join(', ')}
-          </Alert>
-        )}
-
-        {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <StatCard
-            label="Total Equipment"
-            value={equipment.length}
-            icon={Settings}
-            color="emerald"
-          />
-          <StatCard
-            label="Due for Service"
-            value={dueForService.length}
-            icon={AlertTriangle}
-            color={dueForService.length > 0 ? 'amber' : 'emerald'}
-            subtext={`Within ${SERVICE_WINDOW_DAYS} days or overdue`}
-          />
-          <StatCard
-            label="Average Condition"
-            value={avgCondition}
-            icon={Wrench}
-            color={
-              avgCondition === 'Excellent' || avgCondition === 'Good' ? 'emerald'
-                : avgCondition === 'Fair' ? 'amber'
-                  : avgCondition === '—' ? 'slate'
-                    : 'red'
-            }
-          />
-        </div>
-
-        {/* Tabs */}
+      {/* Tabs */}
+      <div className="mb-5">
         <Tabs
           tabs={[
             { id: 'equipment', label: 'Equipment' },
@@ -552,94 +569,99 @@ export default function Equipment() {
           active={activeTab}
           onChange={setActiveTab}
         />
+      </div>
 
-        {/* ── Equipment Tab ── */}
-        {activeTab === 'equipment' && (
-          <div className="space-y-4">
+      {/* ── Equipment Tab ── */}
+      {activeTab === 'equipment' && (
+        <div className="space-y-5">
+          <div className="flex flex-wrap gap-3 items-center mb-5">
             <SearchBar
               value={search}
               onChange={setSearch}
               placeholder="Search equipment by name, type, brand..."
+              className="flex-1 min-w-[220px]"
             />
-
-            {filteredEquipment.length === 0 ? (
-              <Card>
-                <EmptyState
-                  icon={Settings}
-                  title={search ? 'No equipment found' : 'No equipment yet'}
-                  description={
-                    search
-                      ? 'Try a different search term.'
-                      : 'Add your first piece of equipment to start tracking maintenance.'
-                  }
-                  action={
-                    !search && (
-                      <Button onClick={() => setShowAddModal(true)}>
-                        <Plus size={15} /> Add Equipment
-                      </Button>
-                    )
-                  }
-                />
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredEquipment.map((item) => (
-                  <EquipmentCard
-                    key={item.id}
-                    item={item}
-                    maintenanceLogs={maintenanceLogs}
-                    onEdit={(eq) => setEditTarget(eq)}
-                    onDelete={(eq) => setDeleteTarget(eq)}
-                    onLogMaintenance={handleLogMaintenance}
-                  />
-                ))}
-              </div>
-            )}
           </div>
-        )}
 
-        {/* ── Maintenance Logs Tab ── */}
-        {activeTab === 'maintenance' && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between gap-3 flex-wrap">
-              <Select
-                value={maintEquipFilter}
-                onChange={(e) => setMaintEquipFilter(e.target.value)}
-                className="w-full sm:w-64"
-              >
-                <option value="">All Equipment</option>
-                {equipment.map((eq) => (
-                  <option key={eq.id} value={eq.id}>{eq.name}</option>
-                ))}
-              </Select>
-              <Button onClick={() => { setPreselectedEquipId(''); setShowMaintModal(true) }}>
-                <Plus size={15} /> Add Maintenance Log
-              </Button>
-            </div>
-
-            <Card padding={false}>
-              {filteredLogs.length === 0 ? (
-                <EmptyState
-                  icon={Wrench}
-                  title="No maintenance logs yet"
-                  description="Log your first maintenance activity to keep track of service history."
-                  action={
-                    <Button onClick={() => { setPreselectedEquipId(''); setShowMaintModal(true) }}>
-                      <Plus size={15} /> Add Maintenance Log
+          {filteredEquipment.length === 0 ? (
+            <Card className="rounded-2xl border border-slate-200/80 shadow-sm">
+              <EmptyState
+                icon={Settings}
+                title={search ? 'No equipment found' : 'No equipment yet'}
+                description={
+                  search
+                    ? 'Try a different search term.'
+                    : 'Add your first piece of equipment to start tracking maintenance.'
+                }
+                className="py-16"
+                action={
+                  !search && (
+                    <Button onClick={() => setShowAddModal(true)}>
+                      <Plus size={15} /> Add Equipment
                     </Button>
-                  }
-                />
-              ) : (
-                <Table
-                  columns={maintColumns}
-                  data={filteredLogs}
-                  emptyText="No maintenance logs found"
-                />
-              )}
+                  )
+                }
+              />
             </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {filteredEquipment.map((item) => (
+                <EquipmentCard
+                  key={item.id}
+                  item={item}
+                  maintenanceLogs={maintenanceLogs}
+                  onEdit={(eq) => setEditTarget(eq)}
+                  onDelete={(eq) => setDeleteTarget(eq)}
+                  onLogMaintenance={handleLogMaintenance}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Maintenance Logs Tab ── */}
+      {activeTab === 'maintenance' && (
+        <div className="space-y-5">
+          <div className="flex flex-wrap gap-3 items-center mb-5">
+            <Select
+              value={maintEquipFilter}
+              onChange={(e) => setMaintEquipFilter(e.target.value)}
+              className="w-full sm:w-64"
+            >
+              <option value="">All Equipment</option>
+              {equipment.map((eq) => (
+                <option key={eq.id} value={eq.id}>{eq.name}</option>
+              ))}
+            </Select>
+            <Button onClick={() => { setPreselectedEquipId(''); setShowMaintModal(true) }}>
+              <Plus size={15} /> Add Maintenance Log
+            </Button>
           </div>
-        )}
-      </div>
+
+          <Card padding={false} className="overflow-hidden rounded-2xl border border-slate-200/80 shadow-sm">
+            {filteredLogs.length === 0 ? (
+              <EmptyState
+                icon={Wrench}
+                title="No maintenance logs yet"
+                description="Log your first maintenance activity to keep track of service history."
+                className="py-16"
+                action={
+                  <Button onClick={() => { setPreselectedEquipId(''); setShowMaintModal(true) }}>
+                    <Plus size={15} /> Add Maintenance Log
+                  </Button>
+                }
+              />
+            ) : (
+              <Table
+                columns={maintColumns}
+                data={filteredLogs}
+                emptyText="No maintenance logs found"
+              />
+            )}
+          </Card>
+        </div>
+      )}
 
       {/* ── Add Equipment Modal ── */}
       <EquipmentModal

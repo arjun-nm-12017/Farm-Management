@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Wind, Droplets, MapPin } from 'lucide-react'
+import { Wind, Droplets, MapPin, Thermometer } from 'lucide-react'
 import { Card } from '../ui'
 import { WEATHER_CODES } from '../../utils/helpers'
 import useFarmStore from '../../store'
@@ -12,20 +12,25 @@ export default function WeatherWidget({ compact = false }) {
 
   useEffect(() => {
     const lat = farmProfile?.latitude || 40.7128
-    const lon = farmProfile?.longitude || -74.0060
-
+    const lon = farmProfile?.longitude || -74.006
     fetch(
       `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=7`
     )
       .then((r) => r.json())
-      .then((data) => { setWeather(data); setLoading(false) })
-      .catch(() => { setError('Weather unavailable'); setLoading(false) })
+      .then((d) => { setWeather(d); setLoading(false) })
+      .catch(() => { setError(true); setLoading(false) })
   }, [farmProfile?.latitude, farmProfile?.longitude])
 
   if (loading) {
     return (
-      <Card className={compact ? 'py-3' : ''}>
-        <div className="animate-pulse h-16 bg-slate-100 rounded-lg" />
+      <Card>
+        <div className="animate-pulse space-y-3">
+          <div className="h-4 bg-slate-100 rounded-lg w-1/3" />
+          <div className="h-12 bg-slate-100 rounded-xl" />
+          <div className="grid grid-cols-7 gap-1">
+            {[...Array(7)].map((_, i) => <div key={i} className="h-16 bg-slate-100 rounded-lg" />)}
+          </div>
+        </div>
       </Card>
     )
   }
@@ -33,31 +38,33 @@ export default function WeatherWidget({ compact = false }) {
   if (error || !weather) {
     return (
       <Card>
-        <p className="text-sm text-slate-400 text-center py-4">{error}</p>
+        <div className="flex flex-col items-center py-6 text-center">
+          <Thermometer size={24} className="text-slate-300 mb-2" />
+          <p className="text-sm text-slate-400">Weather unavailable</p>
+        </div>
       </Card>
     )
   }
 
   const current = weather.current
   const daily = weather.daily
-  const code = current.weather_code
-  const wInfo = WEATHER_CODES[code] || { icon: '🌡️', label: 'Unknown' }
+  const wInfo = WEATHER_CODES[current.weather_code] || { icon: '🌡️', label: 'Unknown' }
 
   if (compact) {
     return (
-      <Card padding={false} className="p-4">
-        <div className="flex items-center gap-3">
-          <span className="text-3xl">{wInfo.icon}</span>
-          <div>
-            <p className="text-xl font-bold text-slate-900">{Math.round(current.temperature_2m)}°C</p>
-            <p className="text-xs text-slate-500">{wInfo.label}</p>
+      <Card>
+        <div className="flex items-center gap-4">
+          <span className="text-4xl leading-none">{wInfo.icon}</span>
+          <div className="flex-1">
+            <p className="text-2xl font-bold text-slate-900">{Math.round(current.temperature_2m)}°C</p>
+            <p className="text-xs text-slate-500 mt-0.5">{wInfo.label}</p>
           </div>
-          <div className="ml-auto flex flex-col gap-1 text-right">
+          <div className="flex flex-col gap-1.5 text-right">
             <p className="text-xs text-slate-500 flex items-center gap-1 justify-end">
-              <Wind size={12} /> {Math.round(current.wind_speed_10m)} km/h
+              <Wind size={11} className="text-slate-400" /> {Math.round(current.wind_speed_10m)} km/h
             </p>
             <p className="text-xs text-slate-500 flex items-center gap-1 justify-end">
-              <Droplets size={12} /> {current.relative_humidity_2m}%
+              <Droplets size={11} className="text-slate-400" /> {current.relative_humidity_2m}%
             </p>
           </div>
         </div>
@@ -67,41 +74,38 @@ export default function WeatherWidget({ compact = false }) {
 
   return (
     <Card>
-      <div className="flex items-center gap-2 mb-4">
-        <MapPin size={14} className="text-slate-400" />
-        <p className="text-sm font-medium text-slate-600">{farmProfile?.location || 'Farm Location'}</p>
-      </div>
+      {farmProfile?.location && (
+        <div className="flex items-center gap-1.5 mb-4">
+          <MapPin size={12} className="text-slate-400" />
+          <p className="text-xs font-medium text-slate-500">{farmProfile.location}</p>
+        </div>
+      )}
 
-      {/* Current */}
       <div className="flex items-center gap-4 mb-6">
-        <span className="text-5xl">{wInfo.icon}</span>
-        <div>
-          <p className="text-4xl font-bold text-slate-900">{Math.round(current.temperature_2m)}°C</p>
-          <p className="text-sm text-slate-500">{wInfo.label}</p>
+        <span className="text-5xl leading-none">{wInfo.icon}</span>
+        <div className="flex-1">
+          <p className="text-4xl font-bold text-slate-900 tracking-tight">{Math.round(current.temperature_2m)}°C</p>
+          <p className="text-sm text-slate-500 mt-0.5">{wInfo.label}</p>
         </div>
-        <div className="ml-auto flex flex-col gap-2">
+        <div className="flex flex-col gap-2">
           <div className="flex items-center gap-1.5 text-sm text-slate-600">
-            <Wind size={14} className="text-slate-400" />
-            {Math.round(current.wind_speed_10m)} km/h
+            <Wind size={14} className="text-slate-400" /> {Math.round(current.wind_speed_10m)} km/h
           </div>
           <div className="flex items-center gap-1.5 text-sm text-slate-600">
-            <Droplets size={14} className="text-slate-400" />
-            {current.relative_humidity_2m}%
+            <Droplets size={14} className="text-slate-400" /> {current.relative_humidity_2m}%
           </div>
         </div>
       </div>
 
-      {/* 7-day forecast */}
       <div className="grid grid-cols-7 gap-1">
         {daily.time.slice(0, 7).map((date, i) => {
-          const dayCode = daily.weather_code[i]
-          const dayInfo = WEATHER_CODES[dayCode] || { icon: '🌡️' }
+          const dInfo = WEATHER_CODES[daily.weather_code[i]] || { icon: '🌡️' }
           const dayName = i === 0 ? 'Today' : new Date(date).toLocaleDateString('en', { weekday: 'short' })
           return (
-            <div key={date} className="flex flex-col items-center gap-1 py-2 rounded-lg hover:bg-slate-50 transition-colors">
-              <p className="text-xs font-medium text-slate-500">{dayName}</p>
-              <span className="text-lg">{dayInfo.icon}</span>
-              <p className="text-xs font-semibold text-slate-900">{Math.round(daily.temperature_2m_max[i])}°</p>
+            <div key={date} className="flex flex-col items-center gap-1.5 py-2.5 rounded-xl hover:bg-slate-50 transition-colors">
+              <p className="text-xs font-medium text-slate-400">{dayName}</p>
+              <span className="text-lg leading-none">{dInfo.icon}</span>
+              <p className="text-xs font-bold text-slate-900">{Math.round(daily.temperature_2m_max[i])}°</p>
               <p className="text-xs text-slate-400">{Math.round(daily.temperature_2m_min[i])}°</p>
             </div>
           )

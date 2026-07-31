@@ -59,7 +59,7 @@ function buildMonthLabels(from, to) {
 function CustomTooltip({ active, payload, label, currency }) {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-white border border-slate-200 rounded-lg shadow-lg p-3 text-sm">
+    <div className="bg-white border border-slate-200 rounded-xl shadow-lg p-3 text-sm">
       <p className="font-semibold text-slate-700 mb-1">{label}</p>
       {payload.map((p) => (
         <p key={p.dataKey} style={{ color: p.color }}>
@@ -83,8 +83,8 @@ function OverviewTab({ range, transactions, tasks, animals, inventoryItems, enab
   const lowStock = inventoryItems.filter((i) => i.reorderAt != null && Number(i.quantity) <= Number(i.reorderAt)).length
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+    <div className="space-y-5">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard
           label="Total Income"
           value={formatCurrency(income, currency)}
@@ -109,23 +109,28 @@ function OverviewTab({ range, transactions, tasks, animals, inventoryItems, enab
           color="blue"
           icon={Calendar}
         />
-        {enabledModules.livestock && (
-          <StatCard
-            label="Total Animals"
-            value={formatNumber(animals.length)}
-            color="amber"
-            icon={BarChart2}
-          />
-        )}
-        <StatCard
-          label="Low Stock Items"
-          value={formatNumber(lowStock)}
-          color={lowStock > 0 ? 'amber' : 'slate'}
-          icon={Filter}
-        />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {(enabledModules.livestock || lowStock > 0) && (
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+          {enabledModules.livestock && (
+            <StatCard
+              label="Total Animals"
+              value={formatNumber(animals.length)}
+              color="amber"
+              icon={BarChart2}
+            />
+          )}
+          <StatCard
+            label="Low Stock Items"
+            value={formatNumber(lowStock)}
+            color={lowStock > 0 ? 'amber' : 'slate'}
+            icon={Filter}
+          />
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <Card>
           <CardHeader title="Income vs Expenses" subtitle="Selected period breakdown" />
           <ResponsiveContainer width="100%" height={220}>
@@ -143,7 +148,7 @@ function OverviewTab({ range, transactions, tasks, animals, inventoryItems, enab
 
         <Card>
           <CardHeader title="Quick Stats" subtitle="At a glance" />
-          <div className="space-y-3 mt-2">
+          <div className="space-y-1 mt-2">
             {[
               { label: 'Transactions in period', value: filtered.length },
               { label: 'Income transactions', value: filtered.filter((t) => t.type === 'income').length },
@@ -152,7 +157,7 @@ function OverviewTab({ range, transactions, tasks, animals, inventoryItems, enab
               { label: 'Completed tasks', value: tasks.filter((t) => t.status === 'Done').length },
               { label: 'Overdue tasks', value: tasks.filter((t) => t.dueDate && isOverdue(t.dueDate) && t.status !== 'Done' && t.status !== 'Cancelled').length },
             ].map(({ label, value }) => (
-              <div key={label} className="flex items-center justify-between py-1.5 border-b border-slate-100 last:border-0">
+              <div key={label} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
                 <span className="text-sm text-slate-600">{label}</span>
                 <span className="text-sm font-semibold text-slate-900">{value}</span>
               </div>
@@ -172,7 +177,6 @@ function FinanceTab({ range, transactions, currency }) {
   const monthLabels = buildMonthLabels(from, to)
 
   const monthlyData = monthLabels.map((label) => {
-    const [mon, yr] = label.split(' ')
     const txns = filtered.filter((t) => {
       if (!t.date) return false
       try {
@@ -207,7 +211,7 @@ function FinanceTab({ range, transactions, currency }) {
   }, [filtered])
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <Card>
         <CardHeader title="Monthly Income vs Expenses" subtitle="Trend over selected period" />
         <ResponsiveContainer width="100%" height={280}>
@@ -223,7 +227,7 @@ function FinanceTab({ range, transactions, currency }) {
         </ResponsiveContainer>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <Card>
           <CardHeader title="Expenses by Category" />
           {expensesByCategory.length === 0 ? (
@@ -250,18 +254,22 @@ function FinanceTab({ range, transactions, currency }) {
           )}
         </Card>
 
-        <Card padding={false}>
-          <div className="p-5 pb-2">
+        <Card padding={false} className="overflow-hidden rounded-2xl">
+          <div className="px-5 pt-5 pb-3">
             <CardHeader title="Top Categories by Amount" />
           </div>
           <Table
             columns={[
               { key: 'type', label: 'Type', render: (r) => (
-                <Badge variant={r.type === 'income' ? 'green' : 'red'}>{r.type}</Badge>
+                <Badge variant={r.type === 'income' ? 'green' : 'red'} size="sm">{r.type}</Badge>
               )},
               { key: 'category', label: 'Category' },
               { key: 'count', label: 'Count' },
-              { key: 'total', label: 'Total', render: (r) => formatCurrency(r.total, currency) },
+              { key: 'total', label: 'Total', render: (r) => (
+                <span className={r.type === 'income' ? 'text-emerald-600 font-medium' : 'text-red-500 font-medium'}>
+                  {formatCurrency(r.total, currency)}
+                </span>
+              )},
             ]}
             data={topCategories}
             emptyText="No transactions in this period."
@@ -289,9 +297,9 @@ function FieldsTab({ fields, crops, fieldActivities }) {
   }, [fieldActivities])
 
   return (
-    <div className="space-y-6">
-      <Card padding={false}>
-        <div className="p-5 pb-2">
+    <div className="space-y-5">
+      <Card padding={false} className="overflow-hidden rounded-2xl">
+        <div className="px-5 pt-5 pb-3">
           <CardHeader title="Crop Summary" subtitle={`${crops.length} crops across ${fields.length} fields`} />
         </div>
         <Table
@@ -301,7 +309,7 @@ function FieldsTab({ fields, crops, fieldActivities }) {
             { key: 'fieldName', label: 'Field' },
             { key: 'plantingDate', label: 'Planted', render: (r) => formatDate(r.plantingDate) },
             { key: 'expectedHarvestDate', label: 'Harvest', render: (r) => formatDate(r.expectedHarvestDate) },
-            { key: 'stage', label: 'Stage', render: (r) => r.stage ? <Badge variant="green">{r.stage}</Badge> : '—' },
+            { key: 'stage', label: 'Stage', render: (r) => r.stage ? <Badge variant="green" size="sm">{r.stage}</Badge> : '—' },
             { key: 'actCount', label: 'Activities' },
           ]}
           data={cropRows}
@@ -355,8 +363,8 @@ function LivestockTab({ animals, healthRecords, productionLogs }) {
   }, [productionLogs])
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="space-y-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <Card>
           <CardHeader title="Animals by Species" subtitle={`${animals.length} total animals`} />
           {speciesData.length === 0 ? (
@@ -409,24 +417,27 @@ function LivestockTab({ animals, healthRecords, productionLogs }) {
         {recentHealth.length === 0 ? (
           <EmptyState icon={BarChart2} title="No health records" description="No health events recorded yet." />
         ) : (
-          <div className="space-y-2">
-            {recentHealth.map((rec) => {
-              const animal = null // animals not passed directly for lookup here — use animalId
-              return (
-                <div key={rec.id} className="flex items-start gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-medium text-slate-800">{rec.type || 'Health Event'}</span>
-                      <Badge variant="blue">{formatDate(rec.date)}</Badge>
-                      {rec.cost != null && <Badge variant="yellow">{formatCurrency(rec.cost)}</Badge>}
-                    </div>
-                    {rec.description && <p className="text-xs text-slate-500 mt-0.5 truncate">{rec.description}</p>}
-                    {rec.vetName && <p className="text-xs text-slate-400">Vet: {rec.vetName}</p>}
+          <div className="space-y-2 mt-1">
+            {recentHealth.map((rec) => (
+              <div key={rec.id} className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 hover:bg-slate-100/60 transition-colors">
+                <div className="w-2 h-2 rounded-full bg-emerald-500 mt-2 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm font-medium text-slate-800">{rec.type || 'Health Event'}</span>
+                    <Badge variant="blue" size="sm">{formatDate(rec.date)}</Badge>
+                    {rec.cost != null && (
+                      <Badge variant="yellow" size="sm">{formatCurrency(rec.cost)}</Badge>
+                    )}
                   </div>
+                  {rec.description && (
+                    <p className="text-xs text-slate-500 mt-0.5 truncate">{rec.description}</p>
+                  )}
+                  {rec.vetName && (
+                    <p className="text-xs text-slate-400 mt-0.5">Vet: {rec.vetName}</p>
+                  )}
                 </div>
-              )
-            })}
+              </div>
+            ))}
           </div>
         )}
       </Card>
@@ -467,7 +478,7 @@ function InventoryTab({ inventoryItems, stockLogs }) {
   }, [stockLogs])
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <Card>
         <CardHeader title="Stock Levels — Top 10 Items" subtitle="Quantity vs reorder threshold" />
         {top10.length === 0 ? (
@@ -487,13 +498,13 @@ function InventoryTab({ inventoryItems, stockLogs }) {
         )}
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card padding={false}>
-          <div className="p-5 pb-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <Card padding={false} className="overflow-hidden rounded-2xl">
+          <div className="px-5 pt-5 pb-3">
             <CardHeader
               title="Low Stock Items"
               subtitle={`${lowStockItems.length} items at or below reorder threshold`}
-              action={lowStockItems.length > 0 ? <Badge variant="red">{lowStockItems.length} alerts</Badge> : null}
+              action={lowStockItems.length > 0 ? <Badge variant="red" size="sm">{lowStockItems.length} alerts</Badge> : null}
             />
           </div>
           <Table
@@ -551,8 +562,8 @@ function TasksTab({ tasks, range }) {
   )
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="space-y-5">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard label="Total Tasks (period)" value={total} color="slate" icon={BarChart2} />
         <StatCard label="Completed (period)" value={done} color="emerald" icon={BarChart2} />
         <StatCard
@@ -562,9 +573,15 @@ function TasksTab({ tasks, range }) {
           icon={TrendingUp}
           subtext="tasks created in selected period"
         />
+        <StatCard
+          label="Overdue"
+          value={overdueTasks.length}
+          color={overdueTasks.length > 0 ? 'red' : 'slate'}
+          icon={Calendar}
+        />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <Card>
           <CardHeader title="Tasks by Status" subtitle="All tasks" />
           {statusData.length === 0 ? (
@@ -592,20 +609,29 @@ function TasksTab({ tasks, range }) {
           )}
         </Card>
 
-        <Card padding={false}>
-          <div className="p-5 pb-2">
+        <Card padding={false} className="overflow-hidden rounded-2xl">
+          <div className="px-5 pt-5 pb-3">
             <CardHeader
               title="Overdue Tasks"
               subtitle={`${overdueTasks.length} tasks past due date`}
-              action={overdueTasks.length > 0 ? <Badge variant="red">{overdueTasks.length}</Badge> : null}
+              action={overdueTasks.length > 0 ? <Badge variant="red" size="sm">{overdueTasks.length}</Badge> : null}
             />
           </div>
           <Table
             columns={[
               { key: 'title', label: 'Task' },
-              { key: 'dueDate', label: 'Due', render: (r) => <span className="text-red-600 font-medium">{formatDate(r.dueDate)}</span> },
-              { key: 'priority', label: 'Priority', render: (r) => <Badge variant={r.priority === 'Urgent' ? 'red' : r.priority === 'High' ? 'orange' : 'yellow'}>{r.priority}</Badge> },
-              { key: 'status', label: 'Status', render: (r) => <Badge>{r.status}</Badge> },
+              { key: 'dueDate', label: 'Due', render: (r) => (
+                <span className="text-red-500 font-medium text-sm">{formatDate(r.dueDate)}</span>
+              )},
+              { key: 'priority', label: 'Priority', render: (r) => (
+                <Badge
+                  size="sm"
+                  variant={r.priority === 'Urgent' ? 'red' : r.priority === 'High' ? 'orange' : 'yellow'}
+                >
+                  {r.priority}
+                </Badge>
+              )},
+              { key: 'status', label: 'Status', render: (r) => <Badge size="sm">{r.status}</Badge> },
             ]}
             data={overdueTasks}
             emptyText="No overdue tasks."
@@ -645,10 +671,12 @@ function ExportSection() {
         }
       />
       {showAlert && (
-        <Alert variant="info" onClose={() => setShowAlert(false)}>
-          <strong>{exportType} export</strong> is coming soon. This feature will allow you to download
-          a full {exportType === 'PDF' ? 'formatted PDF report' : 'CSV spreadsheet'} of your farm analytics.
-        </Alert>
+        <div className="mt-4">
+          <Alert variant="info" onClose={() => setShowAlert(false)}>
+            <strong>{exportType} export</strong> is coming soon. This feature will allow you to download
+            a full {exportType === 'PDF' ? 'formatted PDF report' : 'CSV spreadsheet'} of your farm analytics.
+          </Alert>
+        </div>
       )}
     </Card>
   )
@@ -690,8 +718,8 @@ export default function Reports() {
   const validTab = tabs.find((t) => t.id === activeTab) ? activeTab : 'overview'
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+    <div className="space-y-7">
+      <div className="mb-7">
         <PageHeader
           title="Reports & Analytics"
           subtitle="Insights and summaries across your farm operations"
@@ -712,38 +740,40 @@ export default function Reports() {
             </div>
           }
         />
-
-        <Tabs tabs={tabs} active={validTab} onChange={setActiveTab} />
-
-        {validTab === 'overview' && (
-          <OverviewTab
-            range={range}
-            transactions={transactions}
-            tasks={tasks}
-            animals={animals}
-            inventoryItems={inventoryItems}
-            enabledModules={enabledModules}
-            currency={currency}
-          />
-        )}
-        {validTab === 'finance' && (
-          <FinanceTab range={range} transactions={transactions} currency={currency} />
-        )}
-        {validTab === 'fields' && (
-          <FieldsTab fields={fields} crops={crops} fieldActivities={fieldActivities} />
-        )}
-        {validTab === 'livestock' && (
-          <LivestockTab animals={animals} healthRecords={healthRecords} productionLogs={productionLogs} />
-        )}
-        {validTab === 'inventory' && (
-          <InventoryTab inventoryItems={inventoryItems} stockLogs={stockLogs} />
-        )}
-        {validTab === 'tasks' && (
-          <TasksTab tasks={tasks} range={range} />
-        )}
-
-        <ExportSection />
       </div>
+
+      <div className="mb-5">
+        <Tabs tabs={tabs} active={validTab} onChange={setActiveTab} />
+      </div>
+
+      {validTab === 'overview' && (
+        <OverviewTab
+          range={range}
+          transactions={transactions}
+          tasks={tasks}
+          animals={animals}
+          inventoryItems={inventoryItems}
+          enabledModules={enabledModules}
+          currency={currency}
+        />
+      )}
+      {validTab === 'finance' && (
+        <FinanceTab range={range} transactions={transactions} currency={currency} />
+      )}
+      {validTab === 'fields' && (
+        <FieldsTab fields={fields} crops={crops} fieldActivities={fieldActivities} />
+      )}
+      {validTab === 'livestock' && (
+        <LivestockTab animals={animals} healthRecords={healthRecords} productionLogs={productionLogs} />
+      )}
+      {validTab === 'inventory' && (
+        <InventoryTab inventoryItems={inventoryItems} stockLogs={stockLogs} />
+      )}
+      {validTab === 'tasks' && (
+        <TasksTab tasks={tasks} range={range} />
+      )}
+
+      <ExportSection />
     </div>
   )
 }

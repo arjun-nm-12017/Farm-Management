@@ -24,6 +24,7 @@ import {
   Table,
   PageHeader,
   ConfirmDialog,
+  SectionDivider,
 } from '../components/ui'
 import { FARM_TYPES, ROLES, UNITS } from '../data/farmTypes'
 import { classNames } from '../utils/helpers'
@@ -79,7 +80,7 @@ const MODULE_LIST = [
 // SECTION: FARM PROFILE
 // ═══════════════════════════════════════════════════════════════
 function FarmProfileSection() {
-  const farmProfile    = useFarmStore((s) => s.farmProfile)
+  const farmProfile       = useFarmStore((s) => s.farmProfile)
   const updateFarmProfile = useFarmStore((s) => s.updateFarmProfile)
 
   const [form, setForm] = useState({
@@ -107,13 +108,12 @@ function FarmProfileSection() {
     setTimeout(() => setSaved(false), 2500)
   }
 
-  // Farm type badges from saved profile
   const farmTypeIds = farmProfile?.farmTypeIds || []
   const farmTypeObjects = farmTypeIds.map((id) => FARM_TYPES.find((t) => t.id === id)).filter(Boolean)
 
   return (
-    <div className="space-y-6">
-      <Card>
+    <div className="space-y-5">
+      <Card className="rounded-2xl border border-slate-200/80 shadow-sm">
         <CardHeader
           title="Farm Profile"
           subtitle="Update your farm's basic information"
@@ -130,10 +130,9 @@ function FarmProfileSection() {
           </Alert>
         )}
 
-        {/* Farm type read-only */}
         {farmTypeObjects.length > 0 && (
           <div className="mb-5">
-            <p className="text-sm font-medium text-slate-700 mb-2">Farm Type</p>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Farm Type</p>
             <div className="flex flex-wrap gap-2">
               {farmTypeObjects.map((ft) => (
                 <Badge key={ft.id} variant="green">
@@ -141,7 +140,7 @@ function FarmProfileSection() {
                 </Badge>
               ))}
             </div>
-            <p className="text-xs text-slate-400 mt-1">Farm type is set during onboarding and cannot be changed here.</p>
+            <p className="text-xs text-slate-400 mt-2">Farm type is set during onboarding and cannot be changed here.</p>
           </div>
         )}
 
@@ -211,7 +210,7 @@ function FarmProfileSection() {
 // SECTION: MODULES
 // ═══════════════════════════════════════════════════════════════
 function ModulesSection() {
-  const enabledModules      = useFarmStore((s) => s.enabledModules)
+  const enabledModules       = useFarmStore((s) => s.enabledModules)
   const updateEnabledModules = useFarmStore((s) => s.updateEnabledModules)
 
   const [modules, setModules] = useState({ ...enabledModules })
@@ -228,8 +227,8 @@ function ModulesSection() {
   }
 
   return (
-    <div className="space-y-4">
-      <Card>
+    <div className="space-y-5">
+      <Card className="rounded-2xl border border-slate-200/80 shadow-sm">
         <CardHeader
           title="Feature Modules"
           subtitle="Enable or disable modules based on what your farm needs"
@@ -275,22 +274,21 @@ function ModulesSection() {
 // ═══════════════════════════════════════════════════════════════
 // SECTION: TEAM / USERS
 // ═══════════════════════════════════════════════════════════════
-const BLANK_USER  = { name: '', email: '', role: 'worker', pin: '' }
-const BLANK_EDIT  = { role: 'worker' }
+const BLANK_USER = { name: '', email: '', role: 'worker', pin: '' }
 
 function TeamSection() {
-  const users      = useFarmStore((s) => s.users)
-  const addUser    = useFarmStore((s) => s.addUser)
-  const updateUser = useFarmStore((s) => s.updateUser)
-  const removeUser = useFarmStore((s) => s.removeUser)
+  const users       = useFarmStore((s) => s.users)
+  const addUser     = useFarmStore((s) => s.addUser)
+  const updateUser  = useFarmStore((s) => s.updateUser)
+  const removeUser  = useFarmStore((s) => s.removeUser)
   const currentUser = useFarmStore((s) => s.currentUser)
 
-  const [showAdd,    setShowAdd]    = useState(false)
-  const [addForm,    setAddForm]    = useState(BLANK_USER)
-  const [addError,   setAddError]   = useState('')
+  const [showAdd,      setShowAdd]      = useState(false)
+  const [addForm,      setAddForm]      = useState(BLANK_USER)
+  const [addError,     setAddError]     = useState('')
 
-  const [editUser,   setEditUser]   = useState(null)   // user object being edited
-  const [editRole,   setEditRole]   = useState('')
+  const [editUser,     setEditUser]     = useState(null)
+  const [editRole,     setEditRole]     = useState('')
 
   const [removeTarget, setRemoveTarget] = useState(null)
 
@@ -298,7 +296,7 @@ function TeamSection() {
 
   // ── Add user ────────────────────────────────────────────────
   const handleAdd = () => {
-    if (!addForm.name.trim()) { setAddError('Name is required.'); return }
+    if (!addForm.name.trim())  { setAddError('Name is required.');  return }
     if (!addForm.email.trim()) { setAddError('Email is required.'); return }
     setAddError('')
     addUser({ name: addForm.name.trim(), email: addForm.email.trim(), role: addForm.role, pin: addForm.pin })
@@ -313,9 +311,7 @@ function TeamSection() {
   }
 
   const handleEditSave = () => {
-    if (editUser) {
-      updateUser(editUser.id, { role: editRole })
-    }
+    if (editUser) updateUser(editUser.id, { role: editRole })
     setEditUser(null)
   }
 
@@ -348,7 +344,11 @@ function TeamSection() {
     {
       key: 'email',
       label: 'Email',
-      render: (row) => <span className="text-slate-600">{row.email || <span className="text-slate-400 italic">—</span>}</span>,
+      render: (row) => (
+        <span className="text-slate-600">
+          {row.email || <span className="text-slate-400 italic">—</span>}
+        </span>
+      ),
     },
     {
       key: 'role',
@@ -364,10 +364,10 @@ function TeamSection() {
       label: '',
       className: 'w-24',
       render: (row) => (
-        <div className="flex items-center gap-2 justify-end">
+        <div className="flex items-center gap-1 justify-end">
           <button
             onClick={() => openEdit(row)}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
             title="Edit role"
           >
             <Edit2 size={14} />
@@ -378,7 +378,7 @@ function TeamSection() {
             className={classNames(
               'p-1.5 rounded-lg transition-colors',
               canRemove(row)
-                ? 'text-slate-400 hover:text-red-600 hover:bg-red-50'
+                ? 'text-slate-400 hover:text-red-500 hover:bg-red-50'
                 : 'text-slate-200 cursor-not-allowed'
             )}
             title={canRemove(row) ? 'Remove user' : 'Cannot remove the only owner'}
@@ -391,19 +391,20 @@ function TeamSection() {
   ]
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader
-          title="Team Members"
-          subtitle="Manage who has access to your farm"
-          action={
-            <Button size="sm" onClick={() => { setShowAdd(true); setAddError('') }}>
-              <Plus size={14} />
-              Add User
-            </Button>
-          }
-        />
-
+    <div className="space-y-5">
+      <Card padding={false} className="rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <div className="p-5">
+          <CardHeader
+            title="Team Members"
+            subtitle="Manage who has access to your farm"
+            action={
+              <Button size="sm" onClick={() => { setShowAdd(true); setAddError('') }}>
+                <Plus size={14} />
+                Add User
+              </Button>
+            }
+          />
+        </div>
         <Table
           columns={columns}
           data={users}
@@ -412,11 +413,11 @@ function TeamSection() {
       </Card>
 
       {/* Role info cards */}
-      <Card>
-        <CardHeader title="Role Permissions" />
+      <Card className="rounded-2xl border border-slate-200/80 shadow-sm">
+        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Role Permissions</p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {ROLES.map((role) => (
-            <div key={role.id} className="flex items-start gap-3 p-3 rounded-lg bg-slate-50 border border-slate-200">
+            <div key={role.id} className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
               <Shield size={16} className="text-emerald-600 mt-0.5 shrink-0" />
               <div>
                 <p className="text-sm font-medium text-slate-800">{role.name}</p>
@@ -495,7 +496,7 @@ function TeamSection() {
       >
         {editUser && (
           <div className="space-y-4">
-            <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+            <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
               <div className="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-semibold text-sm shrink-0">
                 {editUser.name.charAt(0).toUpperCase()}
               </div>
@@ -548,8 +549,8 @@ function DangerZoneSection() {
   }
 
   return (
-    <div className="space-y-4">
-      <Card className="border-red-200">
+    <div className="space-y-5">
+      <Card className="rounded-2xl border border-red-200 shadow-sm">
         <CardHeader
           title={
             <span className="text-red-700 flex items-center gap-2">
@@ -564,10 +565,10 @@ function DangerZoneSection() {
           This will permanently delete all farm data and reset to onboarding. There is no undo.
         </Alert>
 
-        <div className="flex items-start justify-between gap-4 p-4 rounded-lg border border-red-200 bg-red-50">
+        <div className="flex items-start justify-between gap-4 p-4 rounded-xl border border-red-200 bg-red-50">
           <div>
             <p className="text-sm font-semibold text-red-800">Reset All Data</p>
-            <p className="text-xs text-red-600 mt-0.5">
+            <p className="text-xs text-red-600 mt-1">
               Deletes all fields, crops, animals, inventory, tasks, finance records, equipment, and users.
               Resets the app to the onboarding wizard.
             </p>
@@ -614,49 +615,51 @@ export default function Settings() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-5xl mx-auto px-4 py-8">
-        <PageHeader
-          title="Settings"
-          subtitle="Manage your farm profile, modules, team, and account settings"
-        />
+    <div className="space-y-7">
+      <PageHeader
+        title="Settings"
+        subtitle="Manage your farm profile, modules, team, and account settings"
+        className="mb-7"
+      />
 
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* ── Vertical nav (desktop) / horizontal nav (mobile) ── */}
-          <nav className="md:w-52 shrink-0">
-            <ul className="flex md:flex-col gap-1 overflow-x-auto md:overflow-x-visible pb-1 md:pb-0">
-              {NAV_ITEMS.map(({ id, label, Icon }) => (
-                <li key={id} className="shrink-0">
-                  <button
-                    onClick={() => setActiveSection(id)}
+      <div className="flex flex-col md:flex-row gap-6">
+        {/* ── Vertical nav (desktop) / horizontal scroll nav (mobile) ── */}
+        <nav className="md:w-48 shrink-0">
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 hidden md:block">
+            Settings
+          </p>
+          <ul className="flex md:flex-col gap-1 overflow-x-auto md:overflow-x-visible pb-1 md:pb-0">
+            {NAV_ITEMS.map(({ id, label, Icon }) => (
+              <li key={id} className="shrink-0">
+                <button
+                  onClick={() => setActiveSection(id)}
+                  className={classNames(
+                    'flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-left whitespace-nowrap',
+                    activeSection === id
+                      ? id === 'danger'
+                        ? 'bg-red-50 text-red-700 border border-red-200'
+                        : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-800'
+                  )}
+                >
+                  <Icon
+                    size={16}
                     className={classNames(
-                      'flex items-center gap-2.5 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left whitespace-nowrap',
                       activeSection === id
-                        ? id === 'danger'
-                          ? 'bg-red-50 text-red-700 border border-red-200'
-                          : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                        : 'text-slate-600 hover:bg-slate-100'
+                        ? id === 'danger' ? 'text-red-600' : 'text-emerald-600'
+                        : 'text-slate-400'
                     )}
-                  >
-                    <Icon
-                      size={16}
-                      className={classNames(
-                        activeSection === id
-                          ? id === 'danger' ? 'text-red-600' : 'text-emerald-600'
-                          : 'text-slate-400'
-                      )}
-                    />
-                    {label}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </nav>
+                  />
+                  {label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </nav>
 
-          {/* ── Content ── */}
-          <div className="flex-1 min-w-0">
-            {renderSection()}
-          </div>
+        {/* ── Content area ── */}
+        <div className="flex-1 min-w-0">
+          {renderSection()}
         </div>
       </div>
     </div>

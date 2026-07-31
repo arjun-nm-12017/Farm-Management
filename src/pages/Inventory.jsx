@@ -108,7 +108,7 @@ function ItemModal({ open, onClose, initial, onSave, farmProfile }) {
         <div className="grid grid-cols-2 gap-4">
           {categories.length > 0 ? (
             <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium text-slate-700">Category</label>
+              <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Category</label>
               <select
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors hover:border-slate-400"
                 value={form.category}
@@ -258,7 +258,7 @@ function StockLogModal({ open, onClose, onSave, inventoryItems, preselectedItemI
 
         {/* Type radio */}
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-slate-700">Type *</label>
+          <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Type *</label>
           <div className="flex gap-3">
             {[
               { value: 'in', label: 'Stock In', color: 'emerald' },
@@ -402,7 +402,9 @@ function StockTab({
     {
       key: 'category',
       label: 'Category',
-      render: (row) => row.category ? <Badge>{row.category}</Badge> : <span className="text-slate-400">—</span>,
+      render: (row) => row.category
+        ? <Badge className="text-xs">{row.category}</Badge>
+        : <span className="text-slate-400">—</span>,
     },
     {
       key: 'quantity',
@@ -431,8 +433,8 @@ function StockTab({
       label: 'Status',
       render: (row) =>
         isLowStock(row)
-          ? <Badge variant="red">Low Stock</Badge>
-          : <Badge variant="green">OK</Badge>,
+          ? <Badge variant="red" className="text-xs">Low Stock</Badge>
+          : <Badge variant="green" className="text-xs">OK</Badge>,
     },
     {
       key: 'actions',
@@ -443,28 +445,28 @@ function StockTab({
           <button
             title="Stock In"
             onClick={() => setLogItem({ id: row.id, forceType: 'in' })}
-            className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+            className="p-1.5 rounded-lg hover:bg-emerald-50 text-emerald-500 hover:text-emerald-700 transition-colors"
           >
             <ArrowDown size={15} />
           </button>
           <button
             title="Stock Out"
             onClick={() => setLogItem({ id: row.id, forceType: 'out' })}
-            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+            className="p-1.5 rounded-lg hover:bg-red-50 text-red-400 hover:text-red-600 transition-colors"
           >
             <ArrowUp size={15} />
           </button>
           <button
             title="Edit"
             onClick={() => setEditItem(row)}
-            className="p-1.5 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors"
+            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
           >
             <Edit2 size={15} />
           </button>
           <button
             title="Delete"
             onClick={() => setDeleteItem(row)}
-            className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition-colors"
+            className="p-1.5 rounded-lg hover:bg-red-50 text-red-400 hover:text-red-600 transition-colors"
           >
             <Trash2 size={15} />
           </button>
@@ -474,17 +476,17 @@ function StockTab({
   ]
 
   return (
-    <>
+    <div className="space-y-5">
       {/* Low Stock Alert */}
       {lowStockCount > 0 && (
-        <Alert variant="warning" className="mb-5">
+        <Alert variant="warning">
           <span className="font-semibold">{lowStockCount} item{lowStockCount > 1 ? 's are' : ' is'} running low on stock.</span>
           {' '}Check the table below and reorder as needed.
         </Alert>
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard
           label="Total Items"
           value={inventoryItems.length}
@@ -508,29 +510,27 @@ function StockTab({
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+      <div className="flex flex-wrap gap-3 items-center mb-5">
         <SearchBar
           value={search}
           onChange={setSearch}
           placeholder="Search items…"
-          className="flex-1"
+          className="flex-1 min-w-48"
         />
-        <div className="sm:w-52">
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors hover:border-slate-400"
-          >
-            <option value="">All Categories</option>
-            {allCategories.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
-        </div>
+        <select
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+          className="rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors hover:border-slate-400"
+        >
+          <option value="">All Categories</option>
+          {allCategories.map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
       </div>
 
       {/* Table */}
-      <Card padding={false}>
+      <Card padding={false} className="overflow-hidden rounded-2xl">
         {filtered.length === 0 && inventoryItems.length === 0 ? (
           <EmptyState
             icon={Package}
@@ -589,7 +589,7 @@ function StockTab({
         confirmLabel="Delete"
         variant="danger"
       />
-    </>
+    </div>
   )
 }
 
@@ -640,8 +640,8 @@ function StockLogTab({ stockLogs, inventoryItems }) {
       label: 'Type',
       render: (row) =>
         row.type === 'in'
-          ? <Badge variant="green"><ArrowDown size={11} className="inline mr-1" />Stock In</Badge>
-          : <Badge variant="red"><ArrowUp size={11} className="inline mr-1" />Stock Out</Badge>,
+          ? <Badge variant="green" className="text-xs"><ArrowDown size={11} className="inline mr-1" />Stock In</Badge>
+          : <Badge variant="red" className="text-xs"><ArrowUp size={11} className="inline mr-1" />Stock Out</Badge>,
     },
     {
       key: 'quantity',
@@ -649,7 +649,7 @@ function StockLogTab({ stockLogs, inventoryItems }) {
       render: (row) => {
         const item = itemMap[row.itemId]
         return (
-          <span className={`font-medium ${row.type === 'in' ? 'text-emerald-700' : 'text-red-600'}`}>
+          <span className={`font-medium ${row.type === 'in' ? 'text-emerald-600' : 'text-red-500'}`}>
             {row.type === 'in' ? '+' : '-'}{formatNumber(row.quantity, 2)} {item?.unit || ''}
           </span>
         )
@@ -663,10 +663,10 @@ function StockLogTab({ stockLogs, inventoryItems }) {
   ]
 
   return (
-    <>
+    <div className="space-y-5">
       {/* Date filter */}
-      <div className="flex items-center gap-3 mb-4">
-        <span className="text-sm font-medium text-slate-600 shrink-0">Filter:</span>
+      <div className="flex flex-wrap gap-3 items-center mb-5">
+        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider shrink-0">Filter:</span>
         <div className="flex gap-2">
           {DATE_FILTERS.map((f) => (
             <button
@@ -685,7 +685,7 @@ function StockLogTab({ stockLogs, inventoryItems }) {
         <span className="text-xs text-slate-400 ml-auto">{filtered.length} record{filtered.length !== 1 ? 's' : ''}</span>
       </div>
 
-      <Card padding={false}>
+      <Card padding={false} className="overflow-hidden rounded-2xl">
         {filtered.length === 0 ? (
           <EmptyState
             icon={Package}
@@ -700,7 +700,7 @@ function StockLogTab({ stockLogs, inventoryItems }) {
           <Table columns={columns} data={filtered} emptyText="No logs found." />
         )}
       </Card>
-    </>
+    </div>
   )
 }
 
@@ -727,7 +727,7 @@ export default function Inventory() {
   ]
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="space-y-7">
       <PageHeader
         title="Inventory"
         subtitle="Track stock levels, log changes, and manage your farm supplies."
@@ -745,44 +745,42 @@ export default function Inventory() {
         }
       />
 
-      <Tabs tabs={tabs} active={activeTab} onChange={setActiveTab} />
+      <Tabs tabs={tabs} active={activeTab} onChange={setActiveTab} className="mb-5" />
 
-      <div className="mt-6">
-        {activeTab === 'stock' ? (
-          <StockTab
-            inventoryItems={inventoryItems}
-            stockLogs={stockLogs}
+      {activeTab === 'stock' ? (
+        <StockTab
+          inventoryItems={inventoryItems}
+          stockLogs={stockLogs}
+          farmProfile={farmProfile}
+          addInventoryItem={addInventoryItem}
+          updateInventoryItem={updateInventoryItem}
+          removeInventoryItem={removeInventoryItem}
+          addStockLog={addStockLog}
+          externalAddOpen={showAddModal}
+          onExternalAddClose={() => setShowAddModal(false)}
+          externalLogOpen={showLogModal}
+          onExternalLogClose={() => setShowLogModal(false)}
+        />
+      ) : (
+        <>
+          <StockLogTab inventoryItems={inventoryItems} stockLogs={stockLogs} />
+          {/* Modals triggered from header buttons while on log tab */}
+          <ItemModal
+            open={showAddModal}
+            onClose={() => setShowAddModal(false)}
+            initial={null}
+            onSave={(data) => { addInventoryItem(data); setShowAddModal(false) }}
             farmProfile={farmProfile}
-            addInventoryItem={addInventoryItem}
-            updateInventoryItem={updateInventoryItem}
-            removeInventoryItem={removeInventoryItem}
-            addStockLog={addStockLog}
-            externalAddOpen={showAddModal}
-            onExternalAddClose={() => setShowAddModal(false)}
-            externalLogOpen={showLogModal}
-            onExternalLogClose={() => setShowLogModal(false)}
           />
-        ) : (
-          <>
-            <StockLogTab inventoryItems={inventoryItems} stockLogs={stockLogs} />
-            {/* Modals triggered from header buttons while on log tab */}
-            <ItemModal
-              open={showAddModal}
-              onClose={() => setShowAddModal(false)}
-              initial={null}
-              onSave={(data) => { addInventoryItem(data); setShowAddModal(false) }}
-              farmProfile={farmProfile}
-            />
-            <StockLogModal
-              open={showLogModal}
-              onClose={() => setShowLogModal(false)}
-              onSave={(data) => { addStockLog(data); setShowLogModal(false) }}
-              inventoryItems={inventoryItems}
-              preselectedItemId=""
-            />
-          </>
-        )}
-      </div>
+          <StockLogModal
+            open={showLogModal}
+            onClose={() => setShowLogModal(false)}
+            onSave={(data) => { addStockLog(data); setShowLogModal(false) }}
+            inventoryItems={inventoryItems}
+            preselectedItemId=""
+          />
+        </>
+      )}
     </div>
   )
 }

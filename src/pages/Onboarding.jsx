@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Tractor, ChevronRight, ChevronLeft, Check, MapPin, Users, Sliders } from 'lucide-react'
+import { Tractor, ChevronRight, ChevronLeft, Check } from 'lucide-react'
 import { FARM_TYPES, ROLES, UNITS } from '../data/farmTypes'
 import { Button, Input, Select, Alert } from '../components/ui'
 import useFarmStore from '../store'
@@ -8,11 +8,11 @@ import { generateId, nowISO } from '../utils/helpers'
 import { classNames } from '../utils/helpers'
 
 const STEPS = [
-  { id: 'welcome', title: 'Welcome', subtitle: 'Set up your farm management system' },
-  { id: 'farm_type', title: 'Farm Type', subtitle: 'What kind of farm do you operate?' },
-  { id: 'farm_profile', title: 'Farm Profile', subtitle: 'Tell us about your farm' },
-  { id: 'modules', title: 'Modules', subtitle: 'Customize which features you need' },
-  { id: 'team', title: 'Your Account', subtitle: 'Create your account to get started' },
+  { id: 'welcome',      title: 'Welcome',      subtitle: 'Set up your farm management system' },
+  { id: 'farm_type',    title: 'Farm Type',     subtitle: 'What kind of farm do you operate?' },
+  { id: 'farm_profile', title: 'Farm Profile',  subtitle: 'Tell us about your farm' },
+  { id: 'modules',      title: 'Modules',       subtitle: 'Customize which features you need' },
+  { id: 'team',         title: 'Your Account',  subtitle: 'Create your account to get started' },
 ]
 
 export default function Onboarding() {
@@ -21,8 +21,15 @@ export default function Onboarding() {
 
   const [step, setStep] = useState(0)
   const [selectedTypes, setSelectedTypes] = useState([])
-  const [profile, setProfile] = useState({ name: '', location: '', area: '', areaUnit: 'Acres', currency: 'USD', latitude: '', longitude: '' })
-  const [modules, setModules] = useState({ fields: true, livestock: true, inventory: true, tasks: true, finance: true, equipment: true, reports: true, weather: true })
+  const [profile, setProfile] = useState({
+    name: '', location: '', area: '', areaUnit: 'Acres',
+    currency: 'USD', latitude: '', longitude: '',
+  })
+  const [modules, setModules] = useState({
+    fields: true, livestock: true, inventory: true,
+    tasks: true, finance: true, equipment: true,
+    reports: true, weather: true,
+  })
   const [user, setUser] = useState({ name: '', role: 'owner', email: '', pin: '' })
   const [error, setError] = useState('')
 
@@ -54,7 +61,6 @@ export default function Onboarding() {
   const handleNext = () => {
     setError('')
     if (step === 1) {
-      // Apply auto-modules from farm types
       const combined = { ...modules, ...autoModules }
       setModules(combined)
     }
@@ -71,7 +77,11 @@ export default function Onboarding() {
       return
     }
 
-    const farmType = selectedTypes.map((id) => FARM_TYPES.find((t) => t.id === id)?.name).filter(Boolean).join(', ')
+    const farmType = selectedTypes
+      .map((id) => FARM_TYPES.find((t) => t.id === id)?.name)
+      .filter(Boolean)
+      .join(', ')
+
     const firstUser = {
       id: generateId(),
       name: user.name,
@@ -95,14 +105,15 @@ export default function Onboarding() {
     navigate('/dashboard')
   }
 
-  const progress = ((step) / (STEPS.length - 1)) * 100
+  const progress = (step / (STEPS.length - 1)) * 100
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
+
         {/* Logo */}
         <div className="flex items-center gap-3 mb-8 justify-center">
-          <div className="bg-emerald-600 rounded-2xl p-3">
+          <div className="bg-emerald-600 rounded-2xl p-3 shadow-lg">
             <Tractor size={28} className="text-white" />
           </div>
           <div>
@@ -112,7 +123,8 @@ export default function Onboarding() {
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-white/10">
+
           {/* Progress bar */}
           <div className="h-1.5 bg-slate-100">
             <div
@@ -122,48 +134,58 @@ export default function Onboarding() {
           </div>
 
           {/* Step header */}
-          <div className="px-8 pt-8 pb-6 border-b border-slate-100">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1">
-                {STEPS.map((s, i) => (
-                  <div key={s.id} className="flex items-center gap-1">
-                    <div className={classNames(
-                      'w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors',
-                      i < step ? 'bg-emerald-600 text-white' :
-                      i === step ? 'bg-emerald-100 text-emerald-700 ring-2 ring-emerald-600' :
-                      'bg-slate-100 text-slate-400'
-                    )}>
-                      {i < step ? <Check size={14} /> : i + 1}
-                    </div>
-                    {i < STEPS.length - 1 && (
-                      <div className={classNames('w-6 h-0.5', i < step ? 'bg-emerald-600' : 'bg-slate-200')} />
-                    )}
+          <div className="px-8 pt-7 pb-6 border-b border-slate-100">
+            {/* Step indicators */}
+            <div className="flex items-center gap-1 mb-5">
+              {STEPS.map((s, i) => (
+                <div key={s.id} className="flex items-center gap-1">
+                  <div className={classNames(
+                    'w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-200',
+                    i < step
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : i === step
+                        ? 'bg-emerald-100 text-emerald-700 ring-2 ring-emerald-600'
+                        : 'bg-slate-100 text-slate-400'
+                  )}>
+                    {i < step ? <Check size={13} /> : i + 1}
                   </div>
-                ))}
-              </div>
+                  {i < STEPS.length - 1 && (
+                    <div className={classNames(
+                      'w-6 h-0.5 transition-colors duration-300',
+                      i < step ? 'bg-emerald-600' : 'bg-slate-200'
+                    )} />
+                  )}
+                </div>
+              ))}
             </div>
-            <h2 className="text-xl font-bold text-slate-900 mt-4">{STEPS[step].title}</h2>
-            <p className="text-sm text-slate-500">{STEPS[step].subtitle}</p>
+
+            <h2 className="text-xl font-bold text-slate-900 leading-tight">{STEPS[step].title}</h2>
+            <p className="text-sm text-slate-500 mt-0.5">{STEPS[step].subtitle}</p>
           </div>
 
           {/* Step content */}
           <div className="px-8 py-7 min-h-[340px]">
-            {error && <Alert variant="error" className="mb-4">{error}</Alert>}
+            {error && <Alert variant="error" className="mb-5">{error}</Alert>}
 
             {/* Step 0: Welcome */}
             {step === 0 && (
-              <div className="text-center py-6">
-                <div className="text-6xl mb-6">🌾</div>
+              <div className="text-center py-4">
+                <div className="text-6xl mb-5">🌾</div>
                 <h3 className="text-2xl font-bold text-slate-900 mb-3">Welcome to FarmManager</h3>
-                <p className="text-slate-600 max-w-md mx-auto mb-6">
-                  A complete farm management system that adapts to your specific farm type. We'll guide you through a quick setup to personalize your experience.
+                <p className="text-slate-500 max-w-md mx-auto mb-7 text-sm leading-relaxed">
+                  A complete farm management system that adapts to your specific farm type.
+                  We'll guide you through a quick setup to personalise your experience.
                 </p>
                 <div className="grid grid-cols-3 gap-4 text-center">
-                  {[['📋', 'Plan tasks', 'Assign and track daily work'], ['📊', 'Track finances', 'Income, expenses & reports'], ['📦', 'Manage inventory', 'Stock levels & alerts']].map(([icon, title, desc]) => (
-                    <div key={title} className="bg-slate-50 rounded-xl p-4">
+                  {[
+                    ['📋', 'Plan tasks',       'Assign and track daily work'],
+                    ['📊', 'Track finances',   'Income, expenses & reports'],
+                    ['📦', 'Manage inventory', 'Stock levels & alerts'],
+                  ].map(([icon, title, desc]) => (
+                    <div key={title} className="bg-slate-50 rounded-xl p-4 border border-slate-200/80">
                       <div className="text-2xl mb-2">{icon}</div>
                       <p className="font-semibold text-slate-800 text-sm">{title}</p>
-                      <p className="text-xs text-slate-500 mt-1">{desc}</p>
+                      <p className="text-xs text-slate-500 mt-1 leading-relaxed">{desc}</p>
                     </div>
                   ))}
                 </div>
@@ -173,24 +195,26 @@ export default function Onboarding() {
             {/* Step 1: Farm Type */}
             {step === 1 && (
               <div>
-                <p className="text-sm text-slate-500 mb-4">Select all that apply — you can enable multiple types for a mixed farm.</p>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">
+                  Select all that apply — you can enable multiple types for a mixed farm.
+                </p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {FARM_TYPES.map((ft) => (
                     <button
                       key={ft.id}
                       onClick={() => toggleType(ft.id)}
                       className={classNames(
-                        'flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all text-center',
+                        'flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-150 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500',
                         selectedTypes.includes(ft.id)
-                          ? 'border-emerald-600 bg-emerald-50 text-emerald-800'
-                          : 'border-slate-200 hover:border-slate-300 text-slate-700 bg-white'
+                          ? 'border-emerald-600 bg-emerald-50 text-emerald-800 shadow-sm'
+                          : 'border-slate-200 hover:border-emerald-300 hover:bg-slate-50 text-slate-700 bg-white'
                       )}
                     >
                       <span className="text-2xl">{ft.emoji}</span>
-                      <span className="text-sm font-semibold">{ft.name}</span>
+                      <span className="text-sm font-semibold leading-tight">{ft.name}</span>
                       <span className="text-xs text-slate-400 leading-tight">{ft.description}</span>
                       {selectedTypes.includes(ft.id) && (
-                        <div className="bg-emerald-600 text-white rounded-full w-5 h-5 flex items-center justify-center">
+                        <div className="bg-emerald-600 text-white rounded-full w-5 h-5 flex items-center justify-center shadow-sm">
                           <Check size={12} />
                         </div>
                       )}
@@ -202,7 +226,7 @@ export default function Onboarding() {
 
             {/* Step 2: Farm Profile */}
             {step === 2 && (
-              <div className="grid gap-4">
+              <div className="space-y-4">
                 <Input
                   label="Farm Name *"
                   placeholder="e.g. Green Valley Farm"
@@ -215,7 +239,7 @@ export default function Onboarding() {
                   value={profile.location}
                   onChange={(e) => setProfile((p) => ({ ...p, location: e.target.value }))}
                 />
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-4">
                   <Input
                     label="Latitude (for weather)"
                     placeholder="40.7128"
@@ -231,7 +255,7 @@ export default function Onboarding() {
                     onChange={(e) => setProfile((p) => ({ ...p, longitude: e.target.value }))}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-4">
                   <Input
                     label="Total Farm Area"
                     placeholder="e.g. 250"
@@ -260,35 +284,35 @@ export default function Onboarding() {
             {/* Step 3: Modules */}
             {step === 3 && (
               <div>
-                <p className="text-sm text-slate-500 mb-4">
-                  Based on your farm type, we've pre-selected the modules you need. You can adjust these anytime in Settings.
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">
+                  Pre-selected based on your farm type — adjust anytime in Settings.
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    { key: 'fields', label: 'Fields & Crops', emoji: '🌾', desc: 'Manage fields, planting, and harvest' },
-                    { key: 'livestock', label: 'Livestock', emoji: '🐄', desc: 'Animals, health, and production' },
-                    { key: 'inventory', label: 'Inventory', emoji: '📦', desc: 'Stock levels and supplies' },
-                    { key: 'tasks', label: 'Tasks', emoji: '✅', desc: 'Assign and track work' },
-                    { key: 'finance', label: 'Finance', emoji: '💰', desc: 'Income, expenses, reports' },
-                    { key: 'equipment', label: 'Equipment', emoji: '🚜', desc: 'Machinery and maintenance' },
+                    { key: 'fields',    label: 'Fields & Crops', emoji: '🌾', desc: 'Manage fields, planting, and harvest' },
+                    { key: 'livestock', label: 'Livestock',       emoji: '🐄', desc: 'Animals, health, and production' },
+                    { key: 'inventory', label: 'Inventory',       emoji: '📦', desc: 'Stock levels and supplies' },
+                    { key: 'tasks',     label: 'Tasks',           emoji: '✅', desc: 'Assign and track work' },
+                    { key: 'finance',   label: 'Finance',         emoji: '💰', desc: 'Income, expenses, reports' },
+                    { key: 'equipment', label: 'Equipment',       emoji: '🚜', desc: 'Machinery and maintenance' },
                   ].map(({ key, label, emoji, desc }) => (
                     <button
                       key={key}
                       onClick={() => toggleModule(key)}
                       className={classNames(
-                        'flex items-start gap-3 p-4 rounded-xl border-2 text-left transition-all',
+                        'flex items-start gap-3 p-4 rounded-xl border-2 text-left transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500',
                         modules[key]
-                          ? 'border-emerald-600 bg-emerald-50'
-                          : 'border-slate-200 bg-white opacity-60'
+                          ? 'border-emerald-600 bg-emerald-50 shadow-sm'
+                          : 'border-slate-200 bg-white opacity-60 hover:opacity-80'
                       )}
                     >
-                      <span className="text-xl">{emoji}</span>
-                      <div>
+                      <span className="text-xl mt-0.5">{emoji}</span>
+                      <div className="flex-1 min-w-0">
                         <p className="font-semibold text-sm text-slate-800">{label}</p>
-                        <p className="text-xs text-slate-500">{desc}</p>
+                        <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{desc}</p>
                       </div>
                       <div className={classNames(
-                        'ml-auto w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0',
+                        'shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5 transition-colors',
                         modules[key] ? 'border-emerald-600 bg-emerald-600' : 'border-slate-300'
                       )}>
                         {modules[key] && <Check size={12} className="text-white" />}
@@ -301,7 +325,7 @@ export default function Onboarding() {
 
             {/* Step 4: Account */}
             {step === 4 && (
-              <div className="grid gap-4">
+              <div className="space-y-4">
                 <Input
                   label="Your Name *"
                   placeholder="e.g. John Smith"
@@ -332,12 +356,17 @@ export default function Onboarding() {
                   value={user.pin}
                   onChange={(e) => setUser((u) => ({ ...u, pin: e.target.value.replace(/\D/, '') }))}
                 />
-                <div className="bg-emerald-50 rounded-xl p-4">
-                  <p className="text-sm font-semibold text-emerald-800 mb-1">🎉 Almost done!</p>
-                  <p className="text-xs text-emerald-700">
+                <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-200/60">
+                  <p className="text-sm font-semibold text-emerald-800 mb-1">Almost done!</p>
+                  <p className="text-xs text-emerald-700 leading-relaxed">
                     You're setting up <strong>{profile.name || 'your farm'}</strong> as a{' '}
-                    <strong>{selectedTypes.map((id) => FARM_TYPES.find((t) => t.id === id)?.name).join(' / ')}</strong> farm.
-                    Click Finish to launch your personalized dashboard.
+                    <strong>
+                      {selectedTypes
+                        .map((id) => FARM_TYPES.find((t) => t.id === id)?.name)
+                        .filter(Boolean)
+                        .join(' / ')}
+                    </strong>{' '}
+                    farm. Click Finish to launch your personalised dashboard.
                   </p>
                 </div>
               </div>
@@ -345,23 +374,23 @@ export default function Onboarding() {
           </div>
 
           {/* Footer */}
-          <div className="px-8 pb-8 flex items-center justify-between">
+          <div className="px-8 pb-8 flex items-center justify-between border-t border-slate-100 pt-5">
             <Button
               variant="ghost"
               onClick={() => setStep((s) => Math.max(0, s - 1))}
               disabled={step === 0}
             >
-              <ChevronLeft size={16} />
+              <ChevronLeft size={16} className="-ml-0.5" />
               Back
             </Button>
             <Button onClick={handleNext} disabled={!canNext()} size="lg">
               {step === STEPS.length - 1 ? 'Finish Setup' : 'Continue'}
-              {step < STEPS.length - 1 && <ChevronRight size={16} />}
+              {step < STEPS.length - 1 && <ChevronRight size={16} className="-mr-0.5" />}
             </Button>
           </div>
         </div>
 
-        <p className="text-center text-slate-400 text-xs mt-4">
+        <p className="text-center text-slate-500/70 text-xs mt-5">
           You can change all settings later from the Settings page.
         </p>
       </div>
